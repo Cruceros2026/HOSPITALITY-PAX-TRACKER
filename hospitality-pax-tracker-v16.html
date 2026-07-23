@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<!-- ============ VERSIÓN 16 — 23/07/2026 ============ -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospitality Pax Tracker v16</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<!-- Lectura/escritura de Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Empaquetado ZIP de las fotos de visa -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+  :root{
+    --navy:#0F2A43;
+    --navy-light:#1C4A6E;
+    --teal:#0E7C86;
+    --teal-light:#12A0AC;
+    --bg:#F5F7F8;
+    --card:#FFFFFF;
+    --line:#DCE3E7;
+    --ink:#132430;
+    --muted:#5C7280;
+    --amber:#E0942C;
+    --coral:#D64545;
+    --green:#2E8B57;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:60px;
+  }
+  header.top{
+    background:var(--navy); color:#fff; padding:14px 16px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+    position:sticky; top:0; z-index:50;
+  }
+  header.top h1{font-size:16px; margin:0; font-weight:700; letter-spacing:.3px;}
+  header.top .sub{font-size:11px; color:#9FC1D6; margin-top:2px;}
+  .staff-chip{
+    background:var(--teal); color:#fff; padding:6px 10px; border-radius:20px;
+    font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;
+  }
+  .exit-chip{
+    background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; padding:6px 10px;
+    border-radius:20px; font-size:12px; cursor:pointer;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:16px; margin-bottom:16px;
+  }
+  .panel h2{font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0 0 12px;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+  @media(max-width:700px){.grid3{grid-template-columns:1fr;} .grid2{grid-template-columns:1fr;}}
+  label{font-size:11px; color:var(--muted); display:block; margin-bottom:4px; font-weight:600;}
+  input[type=text],input[type=date],textarea,select{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:6px;
+    font-size:14px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  textarea{resize:vertical; min-height:70px;}
+  .btn{
+    background:var(--teal); color:#fff; border:none; padding:9px 14px; border-radius:6px;
+    font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .btn:hover{background:var(--teal-light);}
+  .btn.secondary{background:var(--navy-light);}
+  .btn.ghost{background:transparent; color:var(--navy); border:1px solid var(--line);}
+  .btn.danger{background:var(--coral);}
+  .btn.small{padding:5px 9px; font-size:11px;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .upload-box{
+    border:2px dashed var(--line); border-radius:8px; padding:14px; text-align:center;
+    font-size:12px; color:var(--muted);
+  }
+  .upload-box input[type=file]{margin-top:8px; font-size:12px;}
+  .toprow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+  .search-bar{display:flex; gap:8px; margin-bottom:12px;}
+  .search-bar input{flex:1;}
+  .badge{
+    display:inline-block; padding:3px 8px; border-radius:20px; font-size:10.5px; font-weight:700;
+    letter-spacing:.3px;
+  }
+  .badge.gray{background:#E4E9EC; color:var(--muted);}
+  .badge.green{background:#E1F3E8; color:var(--green);}
+  .badge.coral{background:#FBE7E7; color:var(--coral);}
+  .badge.amber{background:#FBF0DC; color:var(--amber);}
+  .badge.violet{background:#EDE7F6; color:#6B3FA0;}
+  .btn.visa{background:#6B3FA0;}
+  .btn.visa:hover{background:#8055BC;}
+  .visa-thumb{
+    max-width:100%; max-height:190px; border:1px solid var(--line); border-radius:6px;
+    cursor:zoom-in; display:block;
+  }
+  .pax-card{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; margin-bottom:10px;
+  }
+  .pax-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;}
+  .pax-name{font-size:15px; font-weight:700;}
+  .pax-booking{font-family:var(--mono); font-size:12px; color:var(--muted);}
+  .cabin-now{
+    font-family:var(--mono); font-size:18px; font-weight:800; color:var(--navy);
+  }
+  .cabin-label{font-size:10px; color:var(--muted); text-transform:uppercase;}
+  .pax-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .history-toggle{font-size:11px; color:var(--teal); cursor:pointer; text-decoration:underline; margin-top:4px; display:inline-block;}
+  .history-list{margin-top:8px; padding:8px 10px; background:#F7FAFB; border-radius:6px; font-size:11.5px; display:none;}
+  .history-list.open{display:block;}
+  .history-item{padding:3px 0; border-bottom:1px dashed var(--line);}
+  .history-item:last-child{border-bottom:none;}
+  .delivery-info{font-size:11px; color:var(--muted); margin-top:6px;}
+  .claim-item{background:#FBF6EC; border-left:3px solid var(--amber); padding:6px 8px; margin-top:6px; font-size:11.5px; border-radius:4px;}
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(15,42,67,.55); display:none;
+    align-items:center; justify-content:center; z-index:200; padding:16px;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:#fff; border-radius:10px; padding:20px; max-width:480px; width:100%;
+    max-height:90vh; overflow-y:auto;
+  }
+  .modal h3{margin-top:0; font-size:15px;}
+  .modal-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:14px;}
+  .empty{text-align:center; color:var(--muted); padding:30px; font-size:13px;}
+  .counter{font-size:11px; color:var(--muted);}
+  .sync-dot{width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; margin-right:5px;}
+
+  #coverScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+    background:linear-gradient(160deg,var(--navy) 0%, #143452 55%, var(--teal) 140%);
+  }
+  .cover-card{
+    background:#fff; border-radius:14px; padding:28px 26px; max-width:460px; width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+  }
+  .cover-card h1{font-size:19px; margin:0 0 4px; color:var(--navy);}
+  .cover-card p.lead{font-size:12.5px; color:var(--muted); margin:0 0 20px;}
+  .cover-section{margin-bottom:16px;}
+  .cover-section label{font-size:11.5px;}
+  .hint{font-size:11px; color:var(--muted); margin-top:6px;}
+  .new-op-box{
+    border-top:1px dashed var(--line); margin-top:16px; padding-top:16px;
+  }
+  .status-line{font-size:12px; margin-top:10px; padding:8px 10px; border-radius:6px;}
+  .status-line.info{background:#E7F0F5; color:var(--navy-light);}
+  .status-line.error{background:#FBE7E7; color:var(--coral);}
+  #app{display:none;}
+  #configError{
+    display:none; position:fixed; inset:0; background:var(--navy); color:#fff;
+    z-index:999; padding:30px; font-size:13px; line-height:1.6;
+  }
+  #configError code{background:rgba(255,255,255,.15); padding:2px 6px; border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- Pantalla de error si falta configurar Firebase -->
+<div id="configError">
+  <h2>⚠️ Falta configurar Firebase</h2>
+  <p>Este archivo necesita las credenciales de tu proyecto Firebase para funcionar.</p>
+  <p>Abre el archivo HTML, busca la sección <code>firebaseConfig</code> cerca del inicio del <code>&lt;script&gt;</code>, y reemplaza los valores <code>"PEGA_AQUI"</code> por los datos reales de tu proyecto (los obtienes en Firebase Console → Configuración del proyecto → Tus apps).</p>
+</div>
+
+<div id="coverScreen">
+  <div class="cover-card">
+    <h1>🚢 Hospitality Pax Tracker <span style="font-size:11px;color:#5C7280;font-weight:700;background:#E4E9EC;padding:2px 8px;border-radius:10px;vertical-align:middle;">v16</span></h1>
+    <p class="lead">Ingresa el Voyage Code de tu operación. Si ya existe, entrarás a la misma planilla que el resto del equipo. Si es nueva, la crearás ahora.</p>
+
+    <div class="cover-section">
+      <label>Tu nombre (staff)</label>
+      <input type="text" id="coverStaffName" placeholder="Ej: María Pérez">
+    </div>
+
+    <div class="cover-section">
+      <label>Voyage Code</label>
+      <input type="text" id="coverVoyage" placeholder="Ej: OS-2607" style="text-transform:uppercase;">
+    </div>
+
+    <button class="btn" style="width:100%;" onclick="checkVoyage()">Continuar</button>
+    <div id="coverStatus"></div>
+
+    <div class="new-op-box" id="newOpBox" style="display:none;">
+      <div class="counter" style="margin-bottom:10px;">Esta operación no existe todavía. Completa estos datos para crearla:</div>
+      <div class="cover-section">
+        <label>Barco</label>
+        <input type="text" id="coverShip" placeholder="Ej: Ocean Star">
+      </div>
+      <div class="cover-section">
+        <label>Fecha</label>
+        <input type="date" id="coverDate">
+      </div>
+      <div class="cover-section">
+        <label>Lista de pasajeros — planilla de hospitality (Booking / First Name / Last Name)</label>
+        <input type="file" id="coverFileP" accept=".xlsx,.xls,.csv">
+        <div class="hint">Puedes subirla ahora o más tarde desde adentro de la planilla.</div>
+      </div>
+      <button class="btn secondary" style="width:100%;" onclick="createOperation()">Crear operación y entrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+<header class="top">
+  <div>
+    <h1 id="tripTitle" style="display:inline;">Hospitality Pax Tracker</h1> <span style="font-size:10px;color:#9FC1D6;font-weight:700;">v16</span>
+    <div class="sub" id="tripSub">Sin configurar aún</div>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <div class="staff-chip" id="staffChip" onclick="changeStaffName()">👤 Staff</div>
+    <div class="exit-chip" onclick="exitOperation()">Cambiar operación</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="panel">
+    <h2>Datos del viaje</h2>
+    <div class="grid3">
+      <div>
+        <label>Barco</label>
+        <input type="text" id="cfgShip" placeholder="Ej: Ocean Star">
+      </div>
+      <div>
+        <label>Fecha</label>
+        <input type="date" id="cfgDate">
+      </div>
+      <div>
+        <label>Voyage Code</label>
+        <input type="text" id="cfgVoyage" disabled style="background:#F0F3F4;">
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn secondary" onclick="saveTripConfig()">Guardar cambios</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Cargar información</h2>
+    <div class="grid2">
+      <div class="upload-box">
+        <div><strong>Subir cabin manifest de pasajeros</strong><br>Primer manifest del viaje — Booking (Link) / Guest / Suite</div>
+        <input type="file" id="fileP" accept=".xlsx,.xls,.csv" onchange="handleCabinFile(event)">
+      </div>
+      <div class="upload-box">
+        <div><strong>Update cabin manifest</strong><br>Sube aquí cada actualización que llegue (2ª, 3ª, 4ª...)</div>
+        <input type="file" id="fileC" accept=".xlsx,.xls,.csv" onchange="handleCabinFile(event)">
+        <div class="counter" id="batchCounterLabel" style="margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="upload-box" style="margin-top:10px;">
+      <div><strong>🛂 Lista de visas por chequear</strong><br>Visa &amp; Documents Check — Last name / First name / Visa or documents needed. Todos los que vienen en la lista quedan marcados para revisión. Se puede volver a subir cuando llegue una versión actualizada: no borra las fotos ni el trabajo ya hecho.</div>
+      <input type="file" id="fileV" accept=".xlsx,.xls,.csv" onchange="handleVisaFile(event)">
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn ghost small" onclick="exportStatus()">Exportar estado general (Word)</button>
+      <button class="btn ghost small" onclick="exportClaims()">Exportar reclamos (Word)</button>
+      <button class="btn ghost small" onclick="exportVisas()">🛂 Exportar visas con foto (Word)</button>
+      <button class="btn ghost small" onclick="exportVisaZip()">📷 Descargar fotos de visa (ZIP)</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="toprow" style="margin-bottom:10px;">
+      <h2 style="margin:0;">Pasajeros <span class="counter" id="paxCount"></span></h2>
+      <span class="counter"><span class="sync-dot"></span>Sincronizado en vivo</span>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchBox" placeholder="Buscar por booking o apellido..." oninput="render()">
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); white-space:nowrap; margin:0; font-weight:600; cursor:pointer;">
+        <input type="checkbox" id="onlyChanges" onchange="render()"> 🔁 Solo cambios de cabina
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); white-space:nowrap; margin:0; font-weight:600; cursor:pointer;">
+        <input type="checkbox" id="onlyVisa" onchange="render()"> 🛂 Solo visas
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); white-space:nowrap; margin:0; font-weight:600; cursor:pointer;">
+        <input type="checkbox" id="onlyNoPhoto" onchange="render()"> 📷 Sin foto
+      </label>
+    </div>
+    <div id="paxList"></div>
+  </div>
+
+</div>
+</div>
+
+<div class="modal-bg" id="claimModal">
+  <div class="modal">
+    <h3>Registrar requerimiento / reclamo</h3>
+    <div id="claimPaxLabel" class="counter" style="margin-bottom:10px;"></div>
+    <label>Reporte</label>
+    <textarea id="claimReport" placeholder="Describe la situación reportada por el pasajero..."></textarea>
+    <div style="height:10px;"></div>
+    <label>Acciones a seguir / acuerdo con el pasajero</label>
+    <textarea id="claimActions" placeholder="¿En qué quedaron con el pasajero?"></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('claimModal')">Cancelar</button>
+      <button class="btn" onclick="saveClaim()">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="deliverModal">
+  <div class="modal">
+    <h3>Confirmar entrega de información</h3>
+    <div id="deliverPaxLabel" class="counter" style="margin-bottom:10px;"></div>
+    <div id="deliverCompanions" style="margin-bottom:10px;"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('deliverModal')">Cancelar</button>
+      <button class="btn" onclick="confirmDeliver()">Confirmar entrega</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="visaModal">
+  <div class="modal">
+    <h3>Chequeo de visa</h3>
+    <div id="visaPaxLabel" class="counter" style="margin-bottom:10px;"></div>
+    <div id="visaNeededBox" style="display:none; background:#F3EFFA; border-left:3px solid #6B3FA0; padding:8px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;"></div>
+    <div class="upload-box" style="margin-bottom:10px;">
+      <div><strong>📷 Foto de la visa</strong><br>Toma la foto con la cámara o elige un archivo. Se comprime automáticamente antes de subirla.</div>
+      <input type="file" id="visaFile" accept="image/*" capture="environment" onchange="handleVisaPhoto(event)">
+    </div>
+    <div id="visaPhotoBox" style="margin-bottom:12px;"></div>
+    <label>Estado</label>
+    <select id="visaStatus">
+      <option value="pendiente">Pendiente</option>
+      <option value="revisar">Revisar</option>
+      <option value="ok">OK</option>
+    </select>
+    <div style="height:10px;"></div>
+    <label>Notas</label>
+    <textarea id="visaNotas" placeholder="Ej: visa vigente hasta 03/2027"></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('visaModal')">Cancelar</button>
+      <button class="btn" id="visaSaveBtn" onclick="saveVisa()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="mapModal">
+  <div class="modal">
+    <h3>Confirmar mapeo de columnas</h3>
+    <div id="mapInfo" class="counter" style="margin-bottom:10px;"></div>
+    <div id="mapMethodBox" style="display:none; margin-bottom:12px; background:#F7FAFB; border-radius:6px; padding:10px;">
+      <label>¿Cómo asociar cada cabina a los pasajeros?</label>
+      <select id="mapMethod" onchange="updateMapMethodUI()">
+        <option value="apellido-nombre">Por Guest — Apellido y Nombre</option>
+        <option value="apellido">Por Guest — solo Apellido</option>
+        <option value="booking">Por Booking</option>
+      </select>
+    </div>
+    <div id="mapRow1">
+      <label id="mapLbl1">Columna 1</label>
+      <select id="mapSel1" onchange="updateMapPreview()"></select>
+    </div>
+    <div id="mapRow2" style="margin-top:10px;">
+      <label id="mapLbl2">Columna 2</label>
+      <select id="mapSel2" onchange="updateMapPreview()"></select>
+    </div>
+    <div id="mapRow3" style="margin-top:10px;">
+      <label id="mapLbl3">Columna 3</label>
+      <select id="mapSel3" onchange="updateMapPreview()"></select>
+    </div>
+    <div id="mapRow4" style="margin-top:10px; display:none;">
+      <label id="mapLbl4">Columna 4</label>
+      <select id="mapSel4" onchange="updateMapPreview()"></select>
+    </div>
+    <div id="mapPreview" style="margin-top:12px; font-size:11.5px; background:#F7FAFB; border-radius:6px; padding:8px 10px; display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="cancelMap()">Cancelar</button>
+      <button class="btn" onclick="confirmMap()">Confirmar y cargar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1) CONFIGURACIÓN DE FIREBASE
+   Reemplaza los valores de abajo por los de tu proyecto.
+   Los obtienes en: Firebase Console > Configuración del
+   proyecto (ícono de tuerca) > pestaña General > Tus apps.
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBx9TV7wd06APe98AIIYyZCjUzIAv2_wH0",
+  authDomain: "silversea-26-27.firebaseapp.com",
+  databaseURL: "https://silversea-26-27-default-rtdb.firebaseio.com",
+  projectId: "silversea-26-27"
+};
+
+let db = null;
+let firebaseReady = false;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey !== "PEGA_AQUI"){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    firebaseReady = true;
+  }
+}catch(e){ firebaseReady = false; }
+
+if(!firebaseReady){
+  document.getElementById('configError').style.display = 'block';
+}
+
+/* ========================================================= */
+
+let tripConfig = {ship:'', date:'', voyage:''};
+let passengersDb = {};
+let batchCounter = 0;
+let staffName = '';
+let modalOpen = false;
+let pendingBooking = null;
+let currentVoyage = '';
+let paxListenerRef = null;
+
+const LS_STAFF = 'hpt_staff_name';
+const LS_LAST_VOYAGE = 'hpt_last_voyage';
+
+function opRef(voyage, path){ return db.ref('operaciones/' + voyage + (path ? ('/' + path) : '')); }
+
+function normalize(s){
+  return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function normVoyage(s){
+  return (s||'').toString().trim().toUpperCase();
+}
+function findCol(headers, keywords){
+  for(const h of headers){
+    const n = normalize(h);
+    if(keywords.some(k => n.includes(k))) return h;
+  }
+  return null;
+}
+// Compara nombres por sus palabras, sin importar orden, comas ni tildes:
+// "Smith, John" == "John Smith" == "SMITH JOHN"
+const SALUTATIONS = ['mr','mrs','ms','miss','mstr','master','dr','prof','sir','madam','mx','rev'];
+// Quita el tratamiento del final SIN reordenar (para guardar el nombre limpio)
+// Quita puntuación pegada al inicio/fin de cada palabra: el Visa & Documents
+// Check trae los apellidos con punto final ("Liu.", "Kong Yamada.") y los
+// tratamientos también ("Ms."), lo que impedía cualquier coincidencia.
+function trimPunct(w){ return w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, ''); }
+function stripSalutationText(s){
+  const w = (s||'').trim().split(/\s+/).filter(Boolean);
+  while(w.length && SALUTATIONS.includes(trimPunct(normalize(w[w.length-1])))) w.pop();
+  return w.join(' ').replace(/\s*\.\s*$/, '');
+}
+function nameWords(s){
+  const w = normalize(s).split(/[\s,]+/).map(trimPunct).filter(Boolean);
+  while(w.length && SALUTATIONS.includes(w[w.length-1])) w.pop();
+  return w.sort();
+}
+function nameKeyOf(s){ return nameWords(s).join(' '); }
+// Clave única por persona: booking + nombre (permite 2+ pasajeros por booking)
+function paxKey(booking, apellido, nombre){
+  const base = String(booking||'').replace(/[.#$\[\]\/]/g,'_');
+  const slug = normalize((apellido||'') + ' ' + (nombre||'')).replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  return slug ? base + '__' + slug : base;
+}
+function displayName(p){
+  if(!p) return '';
+  if(p.nombre) return (p.apellido||'') + ', ' + p.nombre;
+  return p.apellido || '(sin nombre)';
+}
+function nowStr(){
+  return new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function initCover(){
+  // v4: los campos de nombre y voyage parten siempre vacíos.
+  // Antes se precargaban desde la memoria del navegador (localStorage),
+  // lo que generaba confusión al revisar distintas versiones.
+}
+
+async function checkVoyage(){
+  if(!firebaseReady) return;
+  const voyage = normVoyage(document.getElementById('coverVoyage').value);
+  const name = document.getElementById('coverStaffName').value.trim();
+  const statusEl = document.getElementById('coverStatus');
+  statusEl.innerHTML = '';
+  if(!voyage){ statusEl.innerHTML = '<div class="status-line error">Ingresa un Voyage Code.</div>'; return; }
+  if(!name){ statusEl.innerHTML = '<div class="status-line error">Ingresa tu nombre.</div>'; return; }
+
+  statusEl.innerHTML = '<div class="status-line info">Buscando operación...</div>';
+  try{
+    const snap = await opRef(voyage, 'trip').once('value');
+    if(snap.exists()){
+      staffName = name;
+      try{ localStorage.setItem(LS_STAFF, name); localStorage.setItem(LS_LAST_VOYAGE, voyage); }catch(e){}
+      currentVoyage = voyage;
+      tripConfig = snap.val();
+      await enterApp();
+    } else {
+      statusEl.innerHTML = '<div class="status-line info">Operación nueva. Completa los datos abajo.</div>';
+      document.getElementById('newOpBox').style.display = 'block';
+    }
+  }catch(e){
+    statusEl.innerHTML = '<div class="status-line error">No se pudo conectar a la base de datos. Revisa la configuración de Firebase o tu conexión.</div>';
+  }
+}
+
+async function createOperation(){
+  if(!firebaseReady) return;
+  const voyage = normVoyage(document.getElementById('coverVoyage').value);
+  const name = document.getElementById('coverStaffName').value.trim();
+  const ship = document.getElementById('coverShip').value.trim();
+  const date = document.getElementById('coverDate').value;
+  const fileInput = document.getElementById('coverFileP');
+
+  if(!ship){ alert('Ingresa el nombre del barco.'); return; }
+
+  staffName = name;
+  currentVoyage = voyage;
+  tripConfig = {ship, date, voyage};
+  passengersDb = {};
+  batchCounter = 0;
+
+  try{
+    await opRef(voyage, 'trip').set(tripConfig);
+    await opRef(voyage, 'passengers').set({});
+    await opRef(voyage, 'batchCounter').set(0);
+    try{ localStorage.setItem(LS_STAFF, name); localStorage.setItem(LS_LAST_VOYAGE, voyage); }catch(e){}
+  }catch(e){
+    alert('No se pudo crear la operación. Revisa tu conexión e intenta de nuevo.');
+    return;
+  }
+
+  if(fileInput.files[0]){
+    const ok = await startPassengerMapping(fileInput.files[0], async ()=>{ await enterApp(); });
+    if(!ok) await enterApp();
+  } else {
+    await enterApp();
+  }
+}
+
+async function enterApp(){
+  document.getElementById('coverScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  document.getElementById('cfgShip').value = tripConfig.ship||'';
+  document.getElementById('cfgDate').value = tripConfig.date||'';
+  document.getElementById('cfgVoyage').value = tripConfig.voyage||'';
+  updateTripHeader();
+  updateStaffUI();
+
+  try{
+    const bSnap = await opRef(currentVoyage, 'batchCounter').once('value');
+    batchCounter = bSnap.val() || 0;
+  }catch(e){}
+  updateBatchLabel();
+
+  attachPaxListener();
+}
+
+function attachPaxListener(){
+  if(paxListenerRef) paxListenerRef.off();
+  paxListenerRef = opRef(currentVoyage, 'passengers');
+  paxListenerRef.on('value', snap=>{
+    passengersDb = snap.val() || {};
+    if(!modalOpen) render();
+  });
+}
+
+function exitOperation(){
+  if(paxListenerRef){ paxListenerRef.off(); paxListenerRef = null; }
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('coverScreen').style.display = 'flex';
+  document.getElementById('newOpBox').style.display = 'none';
+  document.getElementById('coverStatus').innerHTML = '';
+}
+
+// A partir de aquí, cada acción escribe SOLO el dato puntual que cambió
+// (no la lista completa de pasajeros). Esto reduce el consumo de banda
+// ancha de Firebase y evita que dos staff que editan al mismo tiempo se
+// pisen los cambios entre sí.
+
+function getHistArray(p){
+  if(!p || !p.cabinHistory) return [];
+  return Object.keys(p.cabinHistory).sort().map(k=>p.cabinHistory[k]);
+}
+function getClaimsArray(p){
+  if(!p || !p.claims) return [];
+  return Object.keys(p.claims).sort().map(k=>p.claims[k]);
+}
+
+function updateStaffUI(){
+  document.getElementById('staffChip').textContent = '👤 ' + staffName;
+}
+function changeStaffName(){
+  const val = prompt('Cambiar nombre de staff:', staffName||'');
+  if(val && val.trim()){
+    staffName = val.trim();
+    try{ localStorage.setItem(LS_STAFF, staffName); }catch(e){}
+    updateStaffUI();
+  }
+}
+
+async function saveTripConfig(){
+  tripConfig.ship = document.getElementById('cfgShip').value.trim();
+  tripConfig.date = document.getElementById('cfgDate').value;
+  try{
+    await opRef(currentVoyage, 'trip').set(tripConfig);
+    updateTripHeader();
+    alert('Datos del viaje guardados.');
+  }catch(e){ alert('No se pudo guardar la configuración.'); }
+}
+function updateTripHeader(){
+  document.getElementById('tripTitle').textContent = tripConfig.ship ? tripConfig.ship : 'Hospitality Pax Tracker';
+  const parts = [];
+  if(tripConfig.voyage) parts.push('Voyage ' + tripConfig.voyage);
+  if(tripConfig.date) parts.push(tripConfig.date);
+  document.getElementById('tripSub').textContent = parts.length ? parts.join(' · ') : 'Sin configurar aún';
+}
+
+function updateBatchLabel(){
+  document.getElementById('batchCounterLabel').textContent =
+    batchCounter > 0 ? ('Updates cargados: ' + batchCounter) : 'Aún no se ha cargado ningún update';
+}
+
+
+// Lee un Excel/CSV detectando automaticamente la fila de encabezados
+// (los manifiestos suelen traer filas de titulo antes de los encabezados reales).
+async function readSheetSmart(file){
+  const data = await file.arrayBuffer();
+  const wb = XLSX.read(data, {type:'array'});
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const aoa = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+  if(!aoa.length) return null;
+  const KEYWORDS = ['booking','bkg','guest','suite','cabin','cabina','nombre','apellido','first','last','flight','hotel','passport','voyage'];
+  let headerIdx = -1;
+  for(let i=0; i<Math.min(aoa.length, 25); i++){
+    const cells = aoa[i].map(c=>normalize(c));
+    const hits = KEYWORDS.filter(k => cells.some(c => c.includes(k))).length;
+    if(hits >= 2){ headerIdx = i; break; }
+  }
+  if(headerIdx === -1){
+    // Sin coincidencias: usar la primera fila con al menos 3 celdas con texto
+    for(let i=0; i<Math.min(aoa.length, 25); i++){
+      if(aoa[i].filter(c=>String(c).trim()!=='').length >= 3){ headerIdx = i; break; }
+    }
+  }
+  if(headerIdx === -1 || headerIdx+1 >= aoa.length) return null;
+  // Si un encabezado viene vacío (típico con celdas combinadas), se busca
+  // el texto en las 2 filas de arriba de esa misma columna.
+  const seen = {};
+  const headers = aoa[headerIdx].map((h,i)=>{
+    let name = String(h).trim();
+    for(let up = headerIdx-1; !name && up >= 0 && up >= headerIdx-2; up--){
+      name = String((aoa[up]||[])[i] || '').trim();
+    }
+    if(!name) name = 'Columna ' + (i+1);
+    if(seen[name]){ seen[name]++; name = name + ' (' + seen[name] + ')'; }
+    else seen[name] = 1;
+    return name;
+  });
+  const rows = aoa.slice(headerIdx+1)
+    .filter(r => r.some(c => String(c).trim() !== ''))
+    .map(r => { const o = {}; headers.forEach((h,i)=>{ o[h] = r[i] !== undefined ? r[i] : ''; }); return o; });
+  return {headers, rows, headerRow: headerIdx+1};
+}
+
+async function startPassengerMapping(file, afterFn){
+  try{
+    const parsed = await readSheetSmart(file);
+    if(!parsed || !parsed.rows.length){ alert('El archivo está vacío o no encontré datos.'); return false; }
+    pendingMapRows = parsed.rows;
+    pendingAfterMap = afterFn || null;
+    openMapModal(parsed.headers, parsed.rows, 'pax');
+    return true;
+  }catch(err){
+    alert('No pude leer el archivo. Verifica que sea un Excel/CSV válido.');
+    return false;
+  }
+}
+
+async function loadPassengerRows(rows, bookingKey, nombreKey, apellidoKey){
+  let added=0, updated=0;
+  const updates = {};
+  rows.forEach(r=>{
+    const booking = String(r[bookingKey] === undefined ? '' : r[bookingKey]).trim();
+    if(!booking) return;
+    const nombre = String(r[nombreKey] === undefined ? '' : r[nombreKey]).trim();
+    const apellido = String(r[apellidoKey] === undefined ? '' : r[apellidoKey]).trim();
+    const k = paxKey(booking, apellido, nombre);
+    if(passengersDb[k]){
+      if(nombre) updates['passengers/'+k+'/nombre'] = nombre;
+      if(apellido) updates['passengers/'+k+'/apellido'] = apellido;
+      updated++;
+    } else {
+      updates['passengers/'+k+'/booking'] = booking;
+      updates['passengers/'+k+'/nombre'] = nombre;
+      updates['passengers/'+k+'/apellido'] = apellido;
+      added++;
+    }
+  });
+  try{
+    if(Object.keys(updates).length){
+      await opRef(currentVoyage).update(updates);
+    }
+    alert('Listo. ' + added + ' pasajeros nuevos, ' + updated + ' actualizados.');
+  }catch(e){
+    alert('No se pudo guardar la lista. Revisa tu conexión e intenta de nuevo.');
+  }
+}
+
+async function handleCabinFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const parsed = await readSheetSmart(file);
+    if(!parsed || !parsed.rows.length){ alert('El archivo está vacío o no encontré datos.'); e.target.value=''; return; }
+    pendingMapRows = parsed.rows;
+    pendingAfterMap = null;
+    openMapModal(parsed.headers, parsed.rows, 'cabin');
+  }catch(err){
+    alert('No pude leer el archivo. Verifica que sea un Excel/CSV válido.');
+  }
+  e.target.value='';
+}
+
+async function handleVisaFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!Object.keys(passengersDb).length){
+    alert('Primero carga la lista de pasajeros: la lista de visas solo marca a los que ya están cargados.');
+    e.target.value=''; return;
+  }
+  try{
+    const parsed = await readSheetSmart(file);
+    if(!parsed || !parsed.rows.length){ alert('El archivo está vacío o no encontré datos.'); e.target.value=''; return; }
+    pendingMapRows = parsed.rows;
+    pendingAfterMap = null;
+    openMapModal(parsed.headers, parsed.rows, 'visa');
+  }catch(err){
+    alert('No pude leer el archivo. Verifica que sea un Excel/CSV válido.');
+  }
+  e.target.value='';
+}
+
+/* ===== Modal de mapeo de columnas (sirve para los tres archivos) ===== */
+let pendingMapRows = null;
+let pendingMapMode = null;   // 'pax' = lista de pasajeros | 'cabin' = cabin manifest
+let pendingAfterMap = null;  // accion posterior (ej: entrar a la app desde el portal)
+let mapPrevHeader = '';
+
+// Busca columnas por prioridad: prueba cada palabra clave en orden
+function findColPriority(headers, keywords){
+  for(const k of keywords){
+    const h = headers.find(h => normalize(h).includes(k));
+    if(h) return h;
+  }
+  return null;
+}
+
+function fillMapSelect(id, headers, guess){
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">— seleccionar —</option>' +
+    headers.map(h => '<option value="' + escapeHtml(h) + '"' + (h===guess?' selected':'') + '>' + escapeHtml(h) + '</option>').join('');
+}
+
+function openMapModal(headers, rows, mode){
+  pendingMapMode = mode;
+  let cfg;
+  if(mode === 'cabin'){
+    cfg = {
+      tipo: 'Cabin manifest',
+      l1:'Columna Booking',                        g1: findColPriority(headers, ['booking','bkgcod','bkg']),
+      l2:'Columna Guest (First Name and Last Name juntos) — opcional', g2: findColPriority(headers, ['guest']),
+      l3:'Columna Suite (cabina)',                 g3: findColPriority(headers, ['suite','cabin','cabina']),
+      prev:'Booking | Guest | Suite'
+    };
+  } else if(mode === 'visa'){
+    cfg = {
+      tipo: 'Visa & Documents Check',
+      l1:'Columna Last name',                                  g1: findColPriority(headers, ['last name','lastname','apellido','surname','last']),
+      l2:'Columna First name',                                 g2: findColPriority(headers, ['first name','firstname','nombre','given','first']),
+      l3:'Columna Visa or documents needed — opcional',        g3: findColPriority(headers, ['visa or documents','documents needed','visa','document','requerim','observ']),
+      l4:'Columna Suite — opcional, solo para desempatar apellidos repetidos',
+                                                               g4: findColPriority(headers, ['suite','cabin','cabina']),
+      prev:'Last name | First name | Visa needed | Suite'
+    };
+  } else {
+    cfg = {
+      tipo: 'Lista de pasajeros (planilla de hospitality)',
+      l1:'Columna Booking (BkgCod)',    g1: findColPriority(headers, ['bkgcod','bkg','booking']),
+      l2:'Columna First Name',          g2: findColPriority(headers, ['first name','firstname','first','nombre']),
+      l3:'Columna Last Name',           g3: findColPriority(headers, ['last name','lastname','last','apellido']),
+      prev:'Booking | First Name | Last Name'
+    };
+  }
+  document.getElementById('mapLbl1').textContent = cfg.l1;
+  document.getElementById('mapLbl2').textContent = cfg.l2;
+  document.getElementById('mapLbl3').textContent = cfg.l3;
+  fillMapSelect('mapSel1', headers, cfg.g1);
+  fillMapSelect('mapSel2', headers, cfg.g2);
+  fillMapSelect('mapSel3', headers, cfg.g3);
+  document.getElementById('mapRow3').style.display = 'block';
+  if(mode === 'visa'){
+    document.getElementById('mapLbl4').textContent = cfg.l4;
+    fillMapSelect('mapSel4', headers, cfg.g4);
+    document.getElementById('mapRow4').style.display = 'block';
+  } else {
+    document.getElementById('mapRow4').style.display = 'none';
+    fillMapSelect('mapSel4', headers, null);
+  }
+  mapPrevHeader = cfg.prev;
+  document.getElementById('mapInfo').textContent =
+    cfg.tipo + ' — ' + rows.length + ' filas detectadas. Confirma qué columna corresponde a cada dato:';
+  const mBox = document.getElementById('mapMethodBox');
+  if(mode === 'cabin'){
+    mBox.style.display = 'block';
+    document.getElementById('mapMethod').value = 'apellido-nombre';
+    updateMapMethodUI();
+  } else {
+    mBox.style.display = 'none';
+  }
+  updateMapPreview();
+  openModal('mapModal');
+}
+
+function updateMapMethodUI(){
+  if(pendingMapMode !== 'cabin') return;
+  const m = document.getElementById('mapMethod').value;
+  document.getElementById('mapLbl1').textContent =
+    m === 'booking' ? 'Columna Booking (Link) — requerida' : 'Columna Booking (Link) — opcional';
+  document.getElementById('mapLbl2').textContent =
+    m === 'booking' ? 'Columna Guest (First Name and Last Name juntos) — opcional' : 'Columna Guest (First Name and Last Name juntos) — requerida';
+}
+
+function updateMapPreview(){
+  const rows = pendingMapRows || [];
+  const c1 = document.getElementById('mapSel1').value;
+  const c2 = document.getElementById('mapSel2').value;
+  const c3 = document.getElementById('mapSel3').value;
+  const c4 = document.getElementById('mapSel4').value;
+  const useC4 = pendingMapMode === 'visa';
+  const box = document.getElementById('mapPreview');
+  if(!rows.length || (!c1 && !c2 && !c3)){ box.style.display='none'; return; }
+  const sample = rows.slice(0,3).map(r =>
+    escapeHtml((c1 ? r[c1] : '¿?') + '  |  ' + (c2 ? r[c2] : '¿?') + '  |  ' + (c3 ? r[c3] : '¿?') +
+      (useC4 ? ('  |  ' + (c4 ? r[c4] : '—')) : ''))
+  ).join('<br>');
+  box.innerHTML = '<strong>Vista previa (' + mapPrevHeader + '):</strong><br>' + sample;
+  box.style.display = 'block';
+}
+
+async function cancelMap(){
+  pendingMapRows = null;
+  closeModal('mapModal');
+  if(pendingAfterMap){ const f = pendingAfterMap; pendingAfterMap = null; await f(); }
+}
+
+async function confirmMap(){
+  const c1 = document.getElementById('mapSel1').value;
+  const c2 = document.getElementById('mapSel2').value || null;
+  const c3 = document.getElementById('mapSel3').value;
+  const rows = pendingMapRows || [];
+  const mode = pendingMapMode;
+  if(mode === 'cabin'){
+    const method = document.getElementById('mapMethod').value;
+    if(!c3){ alert('Selecciona la columna Suite (cabina).'); return; }
+    if(method === 'booking' && !c1){ alert('Para asociar por Booking, selecciona la columna Booking (Link).'); return; }
+    if(method !== 'booking' && !c2){ alert('Para asociar por Guest, selecciona la columna Guest.'); return; }
+    pendingMapRows = null;
+    closeModal('mapModal');
+    await loadCabinRows(rows, c1 || null, c2, c3, method);
+  } else if(mode === 'visa'){
+    const c4 = document.getElementById('mapSel4').value || null;
+    if(!c1 || !c2){ alert('Selecciona las columnas Last name y First name.'); return; }
+    pendingMapRows = null;
+    closeModal('mapModal');
+    await loadVisaRows(rows, c1, c2, c3 || null, c4);
+  } else {
+    if(!c1 || !c2 || !c3){ alert('Selecciona las columnas de Booking, First Name y Last Name.'); return; }
+    pendingMapRows = null;
+    closeModal('mapModal');
+    await loadPassengerRows(rows, c1, c2, c3);
+  }
+  if(pendingAfterMap){ const f = pendingAfterMap; pendingAfterMap = null; await f(); }
+}
+
+/* ===== Índice de pasajeros y matcher — compartidos por cabin manifest y lista de visas ===== */
+function buildPaxIndex(){
+  const byFull = {};
+  const paxWordSets = [];
+  Object.keys(passengersDb).forEach(k=>{
+    const p = passengersDb[k];
+    const words = nameWords((p.apellido||'') + ' ' + (p.nombre||''));
+    if(words.length){ (byFull[words.join(' ')] = byFull[words.join(' ')] || []).push(k); }
+    paxWordSets.push({k, words});
+  });
+  const byBooking = {};
+  Object.keys(passengersDb).forEach(k=>{
+    const b = String(passengersDb[k].booking||'').trim();
+    if(!b) return;
+    // Solo se indexan partes de 4+ caracteres: el sufijo de año ("-25") es
+    // común a TODOS los bookings y hacía que una fila sin match cayera sobre
+    // la lista completa de pasajeros.
+    [b].concat(b.split(/[\s\-\/|]+/).filter(x => x.length >= 4)).forEach(v=>{
+      const sk = v.replace(/[.#$\[\]\/]/g,'_').toUpperCase();
+      if(!byBooking[sk]) byBooking[sk] = [];
+      if(byBooking[sk].indexOf(k) === -1) byBooking[sk].push(k);
+    });
+  });
+  function bookingTargets(booking){
+    if(!booking) return [];
+    const candidates = [booking].concat(booking.split(/[\s\-\/|]+/).filter(x => x.length >= 4));
+    for(const c of candidates){
+      const sk = c.replace(/[.#$\[\]\/]/g,'_').toUpperCase();
+      if(byBooking[sk]) return byBooking[sk];
+    }
+    return [];
+  }
+  return {byFull, paxWordSets, byBooking, bookingTargets};
+}
+
+// Devuelve las claves de pasajero que calzan con una fila, según el método elegido.
+function matchPaxKeys(idx, method, gRaw, gApellido, booking){
+  let keys = [], ambiguous = false;
+  if(method === 'booking'){
+    keys = idx.bookingTargets(booking);
+  } else if(method === 'apellido-nombre'){
+    const gw = nameWords(gRaw);
+    if(gw.length){
+      keys = idx.byFull[gw.join(' ')] || [];
+      if(!keys.length){
+        const cand = idx.paxWordSets.filter(x => x.words.length &&
+          (x.words.every(w => gw.includes(w)) || gw.every(w => x.words.includes(w))));
+        if(cand.length === 1) keys = [cand[0].k];
+        else if(cand.length > 1) ambiguous = true;
+      }
+    }
+    if(!keys.length) keys = idx.bookingTargets(booking);
+  } else {
+    const aWords = nameWords(gApellido);
+    const cand = idx.paxWordSets.filter(x => aWords.length && x.words.length &&
+      aWords.every(w => x.words.includes(w)));
+    if(cand.length === 1) keys = [cand[0].k];
+    else if(cand.length > 1) ambiguous = true;
+    if(!keys.length) keys = idx.bookingTargets(booking);
+  }
+  return {keys, ambiguous};
+}
+
+// "APELLIDO, NOMBRES TRATAMIENTO" → {apellido, nombre}
+function splitGuest(raw){
+  const s = String(raw||'').trim();
+  if(s.includes(',')){
+    const parts = s.split(',');
+    return {apellido: parts[0].trim(), nombre: parts.slice(1).join(',').trim()};
+  }
+  return {apellido: s, nombre: ''};
+}
+
+// Quita el voyage code del booking si viene pegado
+function cleanBooking(booking){
+  let b = String(booking||'').trim();
+  if(b && currentVoyage){
+    const i = b.toUpperCase().indexOf(currentVoyage.toUpperCase());
+    if(i !== -1){
+      b = (b.slice(0,i) + b.slice(i+currentVoyage.length)).replace(/^[\s\-\/|]+|[\s\-\/|]+$/g,'').trim();
+    }
+  }
+  return b;
+}
+
+/* ===== Carga del Visa & Documents Check =====
+   Formato real: Suite | Tittle | Last name | First name | Nationality |
+   Visa or documents needed. NO trae booking, y los apellidos vienen con
+   punto final. Todos los que aparecen en la lista requieren revisión.
+   La Suite se usa solo para desempatar apellidos repetidos (Xu, Gao, Chen...). */
+async function loadVisaRows(rows, lastKey, firstKey, neededKey, suiteKey){
+  try{
+    const idx = buildPaxIndex();
+    const ts = nowStr();
+    const updates = {};
+    const done = {};
+    let marked = 0, already = 0, bySuite = 0;
+    const noMatch = [], ambiguos = [];
+
+    // Cabina actual de cada pasajero, para el desempate por Suite
+    const cabinOf = {};
+    Object.keys(passengersDb).forEach(k=>{
+      const h = getHistArray(passengersDb[k]);
+      cabinOf[k] = h.length ? String(h[h.length-1].cabin||'').trim().toUpperCase() : '';
+    });
+
+    rows.forEach(r=>{
+      const last  = String(r[lastKey]  === undefined ? '' : r[lastKey]).trim();
+      const first = String(r[firstKey] === undefined ? '' : r[firstKey]).trim();
+      if(!last && !first) return;
+      const full   = (last + ' ' + first).trim();
+      const needed = neededKey ? String(r[neededKey] === undefined ? '' : r[neededKey]).trim() : '';
+      const suite  = suiteKey  ? String(r[suiteKey]  === undefined ? '' : r[suiteKey]).trim() : '';
+      const gw = nameWords(full);
+
+      // 1º: mismo conjunto de palabras
+      let keys = (idx.byFull[gw.join(' ')] || []).slice();
+      // 2º: subconjunto en cualquier dirección (segundos nombres, apellidos compuestos)
+      if(!keys.length && gw.length){
+        keys = idx.paxWordSets.filter(x => x.words.length &&
+          (x.words.every(w => gw.includes(w)) || gw.every(w => x.words.includes(w)))).map(x => x.k);
+      }
+      // 3º: si quedaron varios candidatos, desempatar por la Suite de la lista
+      if(keys.length > 1 && suite){
+        const su = suite.toUpperCase();
+        const filtered = keys.filter(k => cabinOf[k] && (cabinOf[k] === su || cabinOf[k].split('-')[0] === su));
+        if(filtered.length === 1){ keys = filtered; bySuite++; }
+      }
+      if(!keys.length){ noMatch.push(full + (suite ? ' (suite ' + suite + ')' : '')); return; }
+      if(keys.length > 1){ ambiguos.push(full + ' → ' + keys.length + ' coincidencias'); return; }
+
+      const k = keys[0];
+      if(done[k]) return;
+      done[k] = true;
+      const prev = passengersDb[k] && passengersDb[k].visa;
+      if(prev && prev.required) already++; else marked++;
+      // Escritura por rutas: NO pisa la foto, el estado ni las notas del staff
+      updates['passengers/'+k+'/visa/required'] = true;
+      updates['passengers/'+k+'/visa/listTs'] = ts;
+      if(needed) updates['passengers/'+k+'/visa/needed'] = needed;
+      if(suite)  updates['passengers/'+k+'/visa/listSuite'] = suite;
+      if(!prev || !prev.status) updates['passengers/'+k+'/visa/status'] = 'pendiente';
+    });
+
+    if(Object.keys(updates).length) await opRef(currentVoyage).update(updates);
+
+    let msg = 'Visa & Documents Check cargado — ' + rows.length + ' filas en el archivo.';
+    msg += '\n🛂 ' + marked + ' pasajeros marcados para revisión de visa.';
+    if(already > 0)  msg += '\n✔ ' + already + ' ya estaban marcados (se conservan foto, estado y notas).';
+    if(bySuite > 0)  msg += '\n🛏 ' + bySuite + ' se resolvieron por Suite (apellido repetido).';
+    if(ambiguos.length){
+      msg += '\n\n⚠️ ' + ambiguos.length + ' filas con más de una coincidencia:';
+      msg += '\n' + ambiguos.slice(0,8).join('\n');
+      if(ambiguos.length > 8) msg += '\n... y ' + (ambiguos.length - 8) + ' más.';
+    }
+    if(noMatch.length){
+      msg += '\n\n⚠️ ' + noMatch.length + ' filas NO están en la lista de pasajeros:';
+      msg += '\n' + noMatch.slice(0,10).join('\n');
+      if(noMatch.length > 10) msg += '\n... y ' + (noMatch.length - 10) + ' más.';
+      msg += '\n\nMárcalos a mano con el botón "＋ visa" de su tarjeta.';
+    }
+    if(!ambiguos.length && !noMatch.length) msg += '\n\n✅ Las ' + rows.length + ' filas quedaron asociadas.';
+    alert(msg);
+  }catch(err){
+    alert('No se pudo cargar la lista de visas. Revisa tu conexión e intenta de nuevo.');
+  }
+}
+
+async function loadCabinRows(rows, bookingKey, guestKey, cabinKey, method){
+  try{
+    const txResult = await opRef(currentVoyage, 'batchCounter').transaction(current => (current||0) + 1);
+    const newBatch = txResult.snapshot.val();
+    batchCounter = newBatch;
+    updateBatchLabel();
+
+    // Índice de los pasajeros ya cargados (nombres por palabras + booking).
+    const idx = buildPaxIndex();
+
+    const ts = nowStr();
+    let updatedCount=0, newStub=0, ambiguous=0, emptyCabin=0, unchanged=0, firstAssign=0;
+    const noMatch = [];
+    const changedList = [];
+    const cabinSetThisBatch = {};
+    const updates = {};
+    let lastSuite = '';
+
+    function addCabin(targetKey, cabin){
+      if(cabinSetThisBatch[targetKey] !== undefined){ return; }
+      cabinSetThisBatch[targetKey] = cabin;
+      const p = passengersDb[targetKey];
+      const hist = getHistArray(p);
+      const current = hist.length ? hist[hist.length-1].cabin : null;
+      if(current === cabin){
+        // Misma cabina que ya tenía: no se agrega al historial (el historial
+        // registra solo la asignación inicial y los CAMBIOS)
+        unchanged++;
+        return;
+      }
+      const pushKey = opRef(currentVoyage, 'passengers/'+targetKey+'/cabinHistory').push().key;
+      updates['passengers/'+targetKey+'/cabinHistory/'+pushKey] = {cabin, batch:newBatch, ts};
+      updatedCount++;
+      if(current === null){
+        firstAssign++;
+      } else {
+        changedList.push((p ? displayName(p) : targetKey) + ':  ' + current + ' → ' + cabin);
+      }
+    }
+
+    rows.forEach(r=>{
+      // La Suite solo viene en la primera fila de cada grupo (celdas combinadas):
+      // si viene vacía, se usa la de la fila anterior.
+      let cabin = String(r[cabinKey] === undefined ? '' : r[cabinKey]).trim();
+      if(cabin) lastSuite = cabin; else cabin = lastSuite;
+      if(!cabin){ emptyCabin++; return; }
+
+      let gRaw='', gApellido='', gNombre='';
+      if(guestKey){
+        gRaw = String(r[guestKey] === undefined ? '' : r[guestKey]).trim();
+        if(gRaw.includes(',')){
+          const parts = gRaw.split(',');
+          gApellido = parts[0].trim();
+          gNombre = parts.slice(1).join(',').trim();
+        } else {
+          gApellido = gRaw;
+        }
+      }
+
+      let booking = bookingKey ? String(r[bookingKey] === undefined ? '' : r[bookingKey]).trim() : '';
+      if(booking && currentVoyage){
+        const idx = booking.toUpperCase().indexOf(currentVoyage.toUpperCase());
+        if(idx !== -1){
+          booking = (booking.slice(0,idx) + booking.slice(idx+currentVoyage.length))
+            .replace(/^[\s\-\/|]+|[\s\-\/|]+$/g,'').trim();
+        }
+      }
+
+      // Matcheo: exacto por palabras → subconjunto → fallback por booking
+      const mres = matchPaxKeys(idx, method, gRaw, gApellido, booking);
+      let keys = mres.keys;
+      if(mres.ambiguous) ambiguous++;
+      if(method === 'booking' && !keys.length && booking){
+        // No estaba en la lista: se crea como registro nuevo con su cabina
+        const sk = paxKey(booking, gApellido, gNombre);
+        updates['passengers/'+sk+'/booking'] = booking;
+        updates['passengers/'+sk+'/nombre'] = gNombre || '(sin nombre)';
+        updates['passengers/'+sk+'/apellido'] = gApellido || '';
+        newStub++;
+        addCabin(sk, cabin);
+        return;
+      }
+
+      if(keys.length){
+        keys.forEach(k => addCabin(k, cabin));
+        if(guestKey && keys.length === 1){
+          const ex = passengersDb[keys[0]];
+          if(ex && (!ex.nombre || ex.nombre === '(sin nombre)') && gNombre) updates['passengers/'+keys[0]+'/nombre'] = gNombre;
+          if(ex && !ex.apellido && gApellido) updates['passengers/'+keys[0]+'/apellido'] = gApellido;
+        }
+      } else {
+        noMatch.push(gRaw || booking || '(fila sin datos)');
+      }
+    });
+
+    if(Object.keys(updates).length){
+      await opRef(currentVoyage).update(updates);
+    }
+
+    let msg = 'Update #' + newBatch + ' cargado.';
+    if(firstAssign > 0) msg += '\n🆕 ' + firstAssign + ' cabinas asignadas por primera vez.';
+    if(changedList.length){
+      msg += '\n🔁 ' + changedList.length + ' CAMBIOS de cabina:';
+      msg += '\n' + changedList.slice(0,15).join('\n');
+      if(changedList.length > 15) msg += '\n... y ' + (changedList.length - 15) + ' más.';
+    } else {
+      msg += '\n🔁 Ningún cambio de cabina respecto al update anterior.';
+    }
+    if(unchanged > 0) msg += '\n✔ ' + unchanged + ' se mantienen en la misma cabina.';
+    if(emptyCabin > 0) msg += '\n⚠️ ' + emptyCabin + ' filas sin valor de Suite (ni en las filas de arriba).';
+    if(newStub > 0) msg += '\n' + newStub + ' bookings no estaban en la lista y se crearon como registros nuevos.';
+    if(noMatch.length){
+      msg += '\n\n⚠️ ' + noMatch.length + ' filas NO se pudieron asociar:';
+      msg += '\n' + noMatch.slice(0,8).join('\n');
+      if(noMatch.length > 8) msg += '\n... y ' + (noMatch.length - 8) + ' más.';
+      msg += '\n\nRevisa esos pasajeros manualmente o prueba otro método de asociación.';
+    }
+    alert(msg);
+  }catch(err){
+    alert('No se pudo cargar el update. Revisa tu conexión e intenta de nuevo.');
+  }
+}
+
+function render(){
+  document.getElementById('paxCount').textContent = '(' + Object.keys(passengersDb).length + ')';
+  const search = normalize(document.getElementById('searchBox').value);
+  const list = document.getElementById('paxList');
+  const onlyChanges = document.getElementById('onlyChanges').checked;
+  const onlyVisa = document.getElementById('onlyVisa').checked;
+  const onlyNoPhoto = document.getElementById('onlyNoPhoto').checked;
+  const entries = Object.keys(passengersDb).map(k=>[k, passengersDb[k]]).filter(([key,p])=>{
+    if(onlyChanges && getHistArray(p).length < 2) return false;
+    const vf = p.visa && p.visa.required;
+    if((onlyVisa || onlyNoPhoto) && !vf) return false;
+    if(onlyNoPhoto && p.visa.hasPhoto) return false;
+    if(!search) return true;
+    return normalize(p.booking).includes(search) || normalize((p.apellido||'')+' '+(p.nombre||'')).includes(search);
+  }).sort((a,b)=> (a[1].apellido||'').localeCompare(b[1].apellido||''));
+
+  if(!entries.length){
+    list.innerHTML = onlyChanges
+      ? '<div class="empty">No hay pasajeros con cambio de cabina todavía.</div>'
+      : '<div class="empty">Aún no hay pasajeros cargados. Sube el Excel de la lista de pasajeros arriba.</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(([key,p])=>{
+    const hist = getHistArray(p);
+    const claimsArr = getClaimsArray(p);
+    const current = hist.length ? hist[hist.length-1] : null;
+    const delivered = p.delivery && p.delivery.delivered;
+    let badge = '<span class="badge gray">Pendiente</span>';
+    if(delivered) badge = '<span class="badge green">Entregado</span>';
+    if(claimsArr.length) badge += ' <span class="badge coral">' + claimsArr.length + ' reclamo(s)</span>';
+    if(hist.length > 1){
+      const prev = hist[hist.length-2];
+      badge += ' <span class="badge amber">🔁 ' + escapeHtml(prev.cabin) + ' → ' + escapeHtml(current.cabin) + ' (U' + current.batch + ')</span>';
+    }
+    const visa = (p.visa && p.visa.required) ? p.visa : null;
+    if(visa){
+      const st = visa.status || 'pendiente';
+      const vCls = st === 'ok' ? 'green' : (st === 'revisar' ? 'amber' : 'violet');
+      const vTxt = st === 'ok' ? 'Visa OK' : (st === 'revisar' ? 'Visa: revisar' : 'Visa: pendiente');
+      badge += ' <span class="badge ' + vCls + '">🛂 ' + vTxt + (visa.hasPhoto ? ' · 📷 con foto' : ' · sin foto') + '</span>';
+    }
+    const visaNeed = (visa && visa.needed)
+      ? '<div class="counter" style="margin-top:4px;">🛂 Requiere: ' + escapeHtml(visa.needed) + '</div>' : '';
+
+    const histHtml = hist.length ? hist.slice().reverse().map(h=>
+      '<div class="history-item">Update ' + h.batch + ' — <strong>' + h.cabin + '</strong> — ' + h.ts + '</div>'
+    ).join('') : '<div class="history-item">Sin historial de cabina aún.</div>';
+
+    const deliveryInfo = delivered
+      ? '<div class="delivery-info">✅ Entregado por <strong>' + p.delivery.staff + '</strong> — ' + p.delivery.ts + ' — cabina informada: <strong>' + p.delivery.cabin + '</strong></div>'
+      : '';
+
+    const claimsHtml = claimsArr.slice().reverse().map(c =>
+      '<div class="claim-item"><strong>' + c.ts + ' — ' + c.staff + '</strong><br>Reporte: ' + escapeHtml(c.report) + '<br>Acciones: ' + escapeHtml(c.actions) + '</div>'
+    ).join('');
+
+    return '<div class="pax-card">' +
+      '<div class="pax-top">' +
+        '<div>' +
+          '<div class="pax-name">' + escapeHtml(displayName(p)) + '</div>' +
+          '<div class="pax-booking">Booking: ' + escapeHtml(p.booking) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div class="cabin-label">Cabina actual</div>' +
+          '<div class="cabin-now">' + (current ? current.cabin : '—') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div>' + badge + '</div>' +
+      visaNeed +
+      deliveryInfo +
+      '<span class="history-toggle" onclick="toggleHistory(this)">Ver historial de cabina (' + hist.length + ')</span>' +
+      '<div class="history-list">' + histHtml + '</div>' +
+      claimsHtml +
+      '<div class="pax-actions">' +
+        '<button class="btn small" onclick="openDeliverModal(\'' + key + '\')">Marcar entrega</button>' +
+        '<button class="btn secondary small" onclick="openClaimModal(\'' + key + '\')">Agregar reclamo/req.</button>' +
+        (visa
+          ? '<button class="btn visa small" onclick="openVisaModal(\'' + key + '\')">🛂 Visa</button>'
+          : '<button class="btn ghost small" onclick="markVisaRequired(\'' + key + '\')">＋ visa</button>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleHistory(el){
+  const box = el.nextElementSibling;
+  box.classList.toggle('open');
+}
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function openModal(id){ modalOpen = true; document.getElementById(id).classList.add('open'); }
+function closeModal(id){
+  modalOpen = false;
+  document.getElementById(id).classList.remove('open');
+  // Redibujar al cerrar: los cambios que llegaron mientras la ventana
+  // estaba abierta (ej. la entrega recién confirmada) se muestran de inmediato
+  if(currentVoyage) render();
+}
+
+function openDeliverModal(key){
+  if(!staffName){ alert('Primero ingresa tu nombre.'); return; }
+  pendingBooking = key;
+  const p = passengersDb[key];
+  const hist = getHistArray(p);
+  const current = hist.length ? hist[hist.length-1].cabin : '—';
+  document.getElementById('deliverPaxLabel').innerHTML =
+    '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking) +
+    '<br>Cabina a entregar: <strong>' + current + '</strong><br>Registrado por: ' + staffName;
+
+  // Acompañantes: otros pasajeros con el MISMO booking
+  const comps = Object.keys(passengersDb).filter(k =>
+    k !== key && String(passengersDb[k].booking||'').trim() === String(p.booking||'').trim());
+  const box = document.getElementById('deliverCompanions');
+  if(comps.length){
+    box.innerHTML =
+      '<div style="background:#FBF6EC; border-left:3px solid var(--amber); padding:8px 10px; border-radius:4px; font-size:12px;">' +
+        '<strong>👥 Viaja con (mismo booking):</strong>' +
+        comps.map(k=>{
+          const c = passengersDb[k];
+          const done = c.delivery && c.delivery.delivered;
+          if(done){
+            return '<div style="margin-top:6px;">✅ ' + escapeHtml(displayName(c)) +
+              ' — ya entregado (' + escapeHtml(c.delivery.staff||'') + ', ' + escapeHtml(c.delivery.ts||'') + ')</div>';
+          }
+          return '<div style="margin-top:6px;">' +
+            '<label style="display:flex; align-items:flex-start; gap:6px; cursor:pointer; margin:0; font-size:12px; color:var(--ink); font-weight:400; text-transform:none; letter-spacing:0;">' +
+              '<input type="checkbox" class="comp-check" value="' + k + '" style="margin-top:2px;">' +
+              '<span>Marcar entrega también a <strong>' + escapeHtml(displayName(c)) + '</strong></span>' +
+            '</label></div>';
+        }).join('') +
+        '<div style="margin-top:8px; color:var(--muted);">Si llegaron por separado, deja el cuadro sin marcar: la entrega queda registrada solo para esta persona.</div>' +
+      '</div>';
+  } else {
+    box.innerHTML = '';
+  }
+  openModal('deliverModal');
+}
+async function confirmDeliver(){
+  const targets = [pendingBooking];
+  document.querySelectorAll('#deliverCompanions .comp-check:checked').forEach(ch => targets.push(ch.value));
+  const ts = nowStr();
+  const updates = {};
+  targets.forEach(k=>{
+    const p = passengersDb[k];
+    if(!p) return;
+    const hist = getHistArray(p);
+    const current = hist.length ? hist[hist.length-1].cabin : '';
+    updates['passengers/'+k+'/delivery'] = {delivered:true, cabin: current, staff: staffName, ts};
+  });
+  try{
+    await opRef(currentVoyage).update(updates);
+  }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
+  closeModal('deliverModal');
+}
+
+function openClaimModal(booking){
+  if(!staffName){ alert('Primero ingresa tu nombre.'); return; }
+  pendingBooking = booking;
+  const p = passengersDb[booking];
+  document.getElementById('claimPaxLabel').innerHTML =
+    '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking);
+  document.getElementById('claimReport').value = '';
+  document.getElementById('claimActions').value = '';
+  openModal('claimModal');
+}
+async function saveClaim(){
+  const report = document.getElementById('claimReport').value.trim();
+  const actions = document.getElementById('claimActions').value.trim();
+  if(!report){ alert('Escribe el reporte antes de guardar.'); return; }
+  const newClaim = {report, actions, staff: staffName, ts: nowStr()};
+  try{
+    await opRef(currentVoyage, 'passengers/'+pendingBooking+'/claims').push(newClaim);
+  }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
+  closeModal('claimModal');
+}
+
+/* =========================================================
+   MÓDULO DE VISAS
+   El estado vive en passengers/<key>/visa (liviano, en vivo).
+   La foto vive aparte en visaPhotos/<key> y solo se descarga
+   cuando se abre el modal o se exporta — así el listener en
+   vivo no arrastra imágenes en cada refresco.
+   ========================================================= */
+let visaKey = null;
+let visaPhotoData = null;   // dataURL en memoria (guardada o recién tomada)
+let visaPhotoDirty = false; // hay cambio de foto pendiente de guardar
+
+// Redimensiona y recomprime antes de subir: una foto de celular pesa 3-5 MB
+// y Realtime Database no es lugar para eso. ~1400px / calidad 0.7 = 150-250 KB.
+function compressImage(file, maxSide, quality){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width  = Math.max(1, Math.round(img.width  * scale));
+        c.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', quality));
+      }catch(err){ URL.revokeObjectURL(url); reject(err); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('imagen inválida')); };
+    img.src = url;
+  });
+}
+
+function visaFileName(p, ext){
+  const clean = x => String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return [clean(tripConfig.voyage || currentVoyage), clean(p.booking),
+          clean((p.apellido||'') + '-' + (p.nombre||''))].filter(Boolean).join('_') + ext;
+}
+
+async function markVisaRequired(key){
+  if(!staffName){ alert('Primero ingresa tu nombre.'); return; }
+  try{
+    await opRef(currentVoyage).update({
+      ['passengers/'+key+'/visa/required']: true,
+      ['passengers/'+key+'/visa/status']: 'pendiente',
+      ['passengers/'+key+'/visa/listTs']: nowStr()
+    });
+  }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); return; }
+  openVisaModal(key);
+}
+
+function openVisaModal(key){
+  if(!staffName){ alert('Primero ingresa tu nombre.'); return; }
+  const p = passengersDb[key];
+  if(!p) return;
+  visaKey = key; visaPhotoData = null; visaPhotoDirty = false;
+  const v = p.visa || {};
+  const hist = getHistArray(p);
+  const cab = hist.length ? hist[hist.length-1].cabin : '—';
+  document.getElementById('visaPaxLabel').innerHTML =
+    '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking||'') +
+    (tripConfig.voyage ? ' — Voyage ' + escapeHtml(tripConfig.voyage) : '') +
+    '<br>Cabina actual: <strong>' + escapeHtml(cab) + '</strong> — Registra: ' + escapeHtml(staffName);
+  const needBox = document.getElementById('visaNeededBox');
+  if(v.needed){
+    needBox.style.display = 'block';
+    needBox.innerHTML = '<strong>Documentos requeridos (según la lista):</strong><br>' + escapeHtml(v.needed) +
+      (v.listSuite ? '<br><span style="color:var(--muted);">Suite en la lista: ' + escapeHtml(v.listSuite) + '</span>' : '');
+  } else {
+    needBox.style.display = 'none';
+    needBox.innerHTML = '';
+  }
+  document.getElementById('visaStatus').value = v.status || 'pendiente';
+  document.getElementById('visaNotas').value = v.notas || '';
+  document.getElementById('visaFile').value = '';
+  const box = document.getElementById('visaPhotoBox');
+  if(v.hasPhoto){
+    box.innerHTML = '<div class="counter">Cargando foto...</div>';
+    opRef(currentVoyage, 'visaPhotos/'+key).once('value').then(snap=>{
+      if(visaKey !== key) return;
+      const d = snap.val();
+      if(d && d.data){ visaPhotoData = d.data; renderVisaPhoto(d.ts, d.staff); }
+      else box.innerHTML = '<div class="counter">La foto no está disponible.</div>';
+    }).catch(()=>{ box.innerHTML = '<div class="counter">No se pudo cargar la foto. Revisa tu conexión.</div>'; });
+  } else {
+    renderVisaPhoto(null, null);
+  }
+  openModal('visaModal');
+}
+
+function renderVisaPhoto(ts, staff){
+  const box = document.getElementById('visaPhotoBox');
+  if(!visaPhotoData){
+    box.innerHTML = '<div class="counter">Sin foto cargada todavía.</div>';
+    return;
+  }
+  box.innerHTML =
+    '<img src="' + visaPhotoData + '" class="visa-thumb" onclick="openVisaFull()" title="Ver en grande">' +
+    '<div class="counter" style="margin-top:6px;">' +
+      (ts ? 'Tomada por ' + escapeHtml(staff||'') + ' — ' + escapeHtml(ts)
+          : '<strong>Foto nueva — se guarda al presionar Guardar</strong>') +
+      ' · <a href="#" onclick="downloadVisaPhoto();return false;">Descargar</a>' +
+      ' · <a href="#" onclick="clearVisaPhoto();return false;">Quitar</a>' +
+    '</div>';
+}
+
+function openVisaFull(){
+  if(!visaPhotoData) return;
+  const w = window.open('', '_blank');
+  if(w) w.document.write('<title>Visa</title><body style="margin:0;background:#111;text-align:center;">' +
+    '<img src="' + visaPhotoData + '" style="max-width:100%;height:auto;"></body>');
+}
+
+function clearVisaPhoto(){
+  visaPhotoData = null;
+  visaPhotoDirty = true;
+  renderVisaPhoto(null, null);
+}
+
+async function handleVisaPhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const box = document.getElementById('visaPhotoBox');
+  box.innerHTML = '<div class="counter">Procesando imagen...</div>';
+  try{
+    let data = await compressImage(file, 1400, 0.7);
+    if(data.length > 900000) data = await compressImage(file, 1200, 0.55);
+    if(data.length > 1400000){
+      alert('La imagen sigue siendo muy pesada. Prueba tomando la foto más cerca o con otra imagen.');
+      renderVisaPhoto(null, null); e.target.value=''; return;
+    }
+    visaPhotoData = data;
+    visaPhotoDirty = true;
+    renderVisaPhoto(null, null);
+  }catch(err){
+    alert('No pude procesar la imagen. Verifica que sea una foto válida.');
+    renderVisaPhoto(null, null);
+  }
+  e.target.value = '';
+}
+
+function downloadVisaPhoto(){
+  if(!visaPhotoData || !visaKey) return;
+  const p = passengersDb[visaKey];
+  const a = document.createElement('a');
+  a.href = visaPhotoData;
+  a.download = visaFileName(p, '.jpg');
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function saveVisa(){
+  const key = visaKey;
+  if(!key) return;
+  const ts = nowStr();
+  const p = passengersDb[key] || {};
+  const hist = getHistArray(p);
+  const updates = {};
+  updates['passengers/'+key+'/visa/required'] = true;
+  updates['passengers/'+key+'/visa/status']   = document.getElementById('visaStatus').value;
+  updates['passengers/'+key+'/visa/notas']    = document.getElementById('visaNotas').value.trim();
+  updates['passengers/'+key+'/visa/staff']    = staffName;
+  updates['passengers/'+key+'/visa/ts']       = ts;
+  // Cabina al momento del chequeo: si después cambia, queda el rastro
+  updates['passengers/'+key+'/visa/cabin']    = hist.length ? hist[hist.length-1].cabin : '';
+  if(visaPhotoDirty){
+    if(visaPhotoData){
+      updates['visaPhotos/'+key] = {data: visaPhotoData, ts, staff: staffName};
+      updates['passengers/'+key+'/visa/hasPhoto'] = true;
+      updates['passengers/'+key+'/visa/photoTs']  = ts;
+    } else {
+      updates['visaPhotos/'+key] = null;
+      updates['passengers/'+key+'/visa/hasPhoto'] = false;
+      updates['passengers/'+key+'/visa/photoTs']  = null;
+    }
+  }
+  const btn = document.getElementById('visaSaveBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try{
+    await opRef(currentVoyage).update(updates);
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Guardar';
+    alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Guardar';
+  visaPhotoData = null; visaPhotoDirty = false; visaKey = null;
+  closeModal('visaModal');
+}
+
+function visaEntries(){
+  return Object.keys(passengersDb).map(k=>[k, passengersDb[k]])
+    .filter(([k,p]) => p.visa && p.visa.required)
+    .sort((a,b)=> (a[1].apellido||'').localeCompare(b[1].apellido||''));
+}
+
+function visaStatusText(v){
+  const st = (v && v.status) || 'pendiente';
+  return st === 'ok' ? 'OK' : (st === 'revisar' ? 'Revisar' : 'Pendiente');
+}
+
+async function exportVisas(){
+  const entries = visaEntries();
+  if(!entries.length){ alert('No hay pasajeros marcados para chequeo de visa.'); return; }
+  let photos = {};
+  try{
+    const snap = await opRef(currentVoyage, 'visaPhotos').once('value');
+    photos = snap.val() || {};
+  }catch(e){
+    alert('No pude leer las fotos. Se exportará solo la información.');
+  }
+  const conFoto = entries.filter(([k,p]) => photos[k] && photos[k].data).length;
+  const ok = entries.filter(([k,p]) => (p.visa.status||'') === 'ok').length;
+
+  const head =
+    '<div style="text-align:center; margin-bottom:20px;">' +
+      '<h1 style="font-size:18pt; margin:0;">Chequeo de Visas</h1>' +
+      '<p style="font-size:11pt; margin:6px 0 0;">' +
+        escapeHtml(tripConfig.ship||'') +
+        (tripConfig.voyage ? ' — Voyage ' + escapeHtml(tripConfig.voyage) : '') +
+        (tripConfig.date ? ' — ' + escapeHtml(tripConfig.date) : '') +
+      '</p>' +
+      '<p style="font-size:9pt; color:#666; margin:4px 0 0;">Generado: ' + nowStr() +
+        ' — ' + entries.length + ' pasajeros — ' + ok + ' en OK — ' + conFoto + ' con foto</p>' +
+    '</div>';
+
+  const body = entries.map(([k,p], i)=>{
+    const v = p.visa || {};
+    const hist = getHistArray(p);
+    const cabNow = hist.length ? hist[hist.length-1].cabin : '—';
+    const ph = photos[k] && photos[k].data ? photos[k] : null;
+    return '<div style="border:1pt solid #999; padding:10pt; margin-bottom:14pt; page-break-inside:avoid;">' +
+      '<p style="font-size:12pt; margin:0 0 6pt;"><b>' + (i+1) + '. ' + escapeHtml(displayName(p)) + '</b></p>' +
+      '<p style="font-size:10pt; margin:0 0 6pt;">' +
+        'Booking: <b>' + escapeHtml(p.booking||'') + '</b> &nbsp;|&nbsp; ' +
+        'Voyage: <b>' + escapeHtml(tripConfig.voyage||currentVoyage||'') + '</b> &nbsp;|&nbsp; ' +
+        'Cabina: <b>' + escapeHtml(cabNow) + '</b>' +
+        (v.cabin && v.cabin !== cabNow ? ' <span style="font-size:8.5pt;">(al chequear: ' + escapeHtml(v.cabin) + ')</span>' : '') +
+      '</p>' +
+      '<p style="font-size:10pt; margin:0 0 6pt;">Estado: <b>' + visaStatusText(v) + '</b>' +
+        (v.staff ? ' — revisado por ' + escapeHtml(v.staff) : '') +
+        (v.ts ? ' — ' + escapeHtml(v.ts) : '') + '</p>' +
+      (v.needed ? '<p style="font-size:10pt; margin:0 0 6pt;"><b>Documentos requeridos:</b> ' + escapeHtml(v.needed) + '</p>' : '') +
+      (v.notas ? '<p style="font-size:10pt; margin:0 0 6pt;"><b>Notas del staff:</b> ' + escapeHtml(v.notas) + '</p>' : '') +
+      (ph ? '<img src="' + ph.data + '" style="max-width:430px; border:0.5pt solid #999;">'
+          : '<p style="font-size:9.5pt; color:#A33; margin:0;"><b>Sin foto de visa cargada.</b></p>') +
+    '</div>';
+  }).join('');
+
+  const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Visas</title></head>' +
+    '<body style="font-family:Calibri, Arial, sans-serif;">' + head + body + '</body></html>';
+
+  const blob = new Blob(['\ufeff', doc], {type: 'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'visas_' + (tripConfig.voyage||'viaje') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+async function exportVisaZip(){
+  if(typeof JSZip === 'undefined'){
+    alert('No se pudo cargar el generador de ZIP. Revisa tu conexión e intenta de nuevo.');
+    return;
+  }
+  const entries = visaEntries();
+  if(!entries.length){ alert('No hay pasajeros marcados para chequeo de visa.'); return; }
+  let photos = {};
+  try{
+    const snap = await opRef(currentVoyage, 'visaPhotos').once('value');
+    photos = snap.val() || {};
+  }catch(e){ alert('No pude leer las fotos. Revisa tu conexión.'); return; }
+
+  const zip = new JSZip();
+  const lines = ['Voyage;Booking;Apellido;Nombre;Cabina;Estado;Documentos requeridos;Notas;Archivo;Revisado por;Fecha'];
+  const usados = {};
+  let conFoto = 0;
+  entries.forEach(([k,p])=>{
+    const v = p.visa || {};
+    const hist = getHistArray(p);
+    const cabNow = hist.length ? hist[hist.length-1].cabin : '';
+    const ph = photos[k] && photos[k].data ? photos[k] : null;
+    let fname = '';
+    if(ph){
+      fname = visaFileName(p, '.jpg');
+      if(usados[fname]){ usados[fname]++; fname = fname.replace(/\.jpg$/, '_' + usados[fname] + '.jpg'); }
+      else usados[fname] = 1;
+      const b64 = ph.data.indexOf(',') !== -1 ? ph.data.slice(ph.data.indexOf(',')+1) : ph.data;
+      zip.file(fname, b64, {base64:true});
+      conFoto++;
+    }
+    const cel = x => String(x||'').replace(/[;\r\n]+/g,' ').trim();
+    lines.push([
+      cel(tripConfig.voyage||currentVoyage), cel(p.booking), cel(p.apellido), cel(p.nombre),
+      cel(cabNow), visaStatusText(v), cel(v.needed), cel(v.notas), fname || 'SIN FOTO', cel(v.staff), cel(v.ts)
+    ].join(';'));
+  });
+  zip.file('indice.csv', '\ufeff' + lines.join('\r\n'));
+
+  try{
+    const blob = await zip.generateAsync({type:'blob'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'visas_fotos_' + (tripConfig.voyage||'viaje') + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    if(conFoto < entries.length){
+      alert('ZIP generado con ' + conFoto + ' de ' + entries.length + ' fotos.\nLos pasajeros sin foto quedan en indice.csv marcados como SIN FOTO.');
+    }
+  }catch(e){
+    alert('No se pudo generar el ZIP. Si son muchas fotos, prueba de nuevo desde un computador.');
+  }
+}
+
+function exportStatus(){
+  const entries = Object.values(passengersDb)
+    .sort((a,b)=> (a.apellido||'').localeCompare(b.apellido||''));
+  if(!entries.length){ alert('No hay datos para exportar.'); return; }
+
+  let delivered = 0, changed = 0, claims = 0;
+  entries.forEach(p=>{
+    if(p.delivery && p.delivery.delivered) delivered++;
+    if(getHistArray(p).length > 1) changed++;
+    claims += getClaimsArray(p).length;
+  });
+
+  const head =
+    '<div style="text-align:center; margin-bottom:20px;">' +
+      '<h1 style="font-size:18pt; margin:0;">Estado General de Pasajeros</h1>' +
+      '<p style="font-size:11pt; margin:6px 0 0;">' +
+        escapeHtml(tripConfig.ship||'') +
+        (tripConfig.voyage ? ' — Voyage ' + escapeHtml(tripConfig.voyage) : '') +
+        (tripConfig.date ? ' — ' + escapeHtml(tripConfig.date) : '') +
+      '</p>' +
+      '<p style="font-size:9pt; color:#666; margin:4px 0 0;">Generado: ' + nowStr() +
+        ' — ' + entries.length + ' pasajeros — ' + delivered + ' entregados — ' +
+        changed + ' con cambio de cabina — ' + claims + ' reclamo(s)</p>' +
+    '</div>';
+
+  const rows = entries.map(p=>{
+    const hist = getHistArray(p);
+    const current = hist.length ? hist[hist.length-1].cabin : '—';
+    const histStr = hist.map(h => 'U' + h.batch + ': ' + h.cabin).join('  →  ');
+    const isChanged = hist.length > 1;
+    const del = p.delivery && p.delivery.delivered
+      ? 'Sí — ' + escapeHtml(p.delivery.staff||'') + '<br>' + escapeHtml(p.delivery.ts||'') +
+        (p.delivery.cabin && p.delivery.cabin !== current ? '<br><b>⚠ informada: ' + escapeHtml(p.delivery.cabin) + '</b>' : '')
+      : 'Pendiente';
+    const nClaims = getClaimsArray(p).length;
+    const v = p.visa && p.visa.required ? p.visa : null;
+    const visaCell = v
+      ? '<b>' + visaStatusText(v) + '</b>' + (v.hasPhoto ? '<br><span style="font-size:8pt;">con foto</span>' : '<br><span style="font-size:8pt;">sin foto</span>')
+      : '—';
+    return '<tr>' +
+      '<td style="border:0.5pt solid #999; padding:4pt; font-size:9pt;"><b>' + escapeHtml(displayName(p)) + '</b><br>' + escapeHtml(p.booking||'') + '</td>' +
+      '<td style="border:0.5pt solid #999; padding:4pt; font-size:9pt; text-align:center;"><b style="font-size:11pt;">' + escapeHtml(current) + '</b>' +
+        (isChanged ? '<br><span style="font-size:8pt;">' + escapeHtml(histStr) + '</span>' : '') + '</td>' +
+      '<td style="border:0.5pt solid #999; padding:4pt; font-size:9pt; text-align:center;">' + del + '</td>' +
+      '<td style="border:0.5pt solid #999; padding:4pt; font-size:9pt; text-align:center;">' + visaCell + '</td>' +
+      '<td style="border:0.5pt solid #999; padding:4pt; font-size:9pt; text-align:center;">' + (nClaims || '—') + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const table =
+    '<table style="border-collapse:collapse; width:100%;">' +
+      '<tr style="background:#0F2A43;">' +
+        '<th style="border:0.5pt solid #999; padding:5pt; font-size:9pt; color:#fff; text-align:left;">Pasajero / Booking</th>' +
+        '<th style="border:0.5pt solid #999; padding:5pt; font-size:9pt; color:#fff;">Cabina (historial)</th>' +
+        '<th style="border:0.5pt solid #999; padding:5pt; font-size:9pt; color:#fff;">Entrega</th>' +
+        '<th style="border:0.5pt solid #999; padding:5pt; font-size:9pt; color:#fff;">Visa</th>' +
+        '<th style="border:0.5pt solid #999; padding:5pt; font-size:9pt; color:#fff;">Reclamos</th>' +
+      '</tr>' + rows +
+    '</table>';
+
+  const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Estado General</title></head>' +
+    '<body style="font-family:Calibri, Arial, sans-serif;">' + head + table + '</body></html>';
+
+  const blob = new Blob(['\ufeff', doc], {type: 'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'estado_general_' + (tripConfig.voyage||'viaje') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+function exportClaims(){
+  const items = [];
+  Object.values(passengersDb).forEach(p=>{
+    getClaimsArray(p).forEach(c=> items.push({p, c}));
+  });
+  if(!items.length){ alert('No hay reclamos/requerimientos registrados todavía.'); return; }
+
+  const head =
+    '<div style="text-align:center; margin-bottom:24px;">' +
+      '<h1 style="font-size:18pt; margin:0;">Reclamos y Requerimientos</h1>' +
+      '<p style="font-size:11pt; margin:6px 0 0;">' +
+        escapeHtml(tripConfig.ship||'') +
+        (tripConfig.voyage ? ' — Voyage ' + escapeHtml(tripConfig.voyage) : '') +
+        (tripConfig.date ? ' — ' + escapeHtml(tripConfig.date) : '') +
+      '</p>' +
+      '<p style="font-size:9pt; color:#666; margin:4px 0 0;">Generado: ' + nowStr() + ' — Total: ' + items.length + ' registro(s)</p>' +
+    '</div>';
+
+  const body = items.map((it, i)=>{
+    const hist = getHistArray(it.p);
+    const cab = hist.length ? hist[hist.length-1].cabin : '—';
+    return '<div style="border:1pt solid #999; padding:10pt; margin-bottom:14pt; page-break-inside:avoid;">' +
+      '<p style="font-size:12pt; margin:0 0 6pt;"><b>' + (i+1) + '. ' + escapeHtml(displayName(it.p)) + '</b>' +
+        ' — Booking ' + escapeHtml(it.p.booking||'') + ' — Cabina ' + escapeHtml(cab) + '</p>' +
+      '<p style="font-size:9pt; color:#555; margin:0 0 8pt;">Registrado por ' + escapeHtml(it.c.staff||'') + ' — ' + escapeHtml(it.c.ts||'') + '</p>' +
+      '<p style="font-size:10pt; margin:0 0 4pt;"><b>Reporte:</b><br>' + escapeHtml(it.c.report||'').split('\n').join('<br>') + '</p>' +
+      '<p style="font-size:10pt; margin:0;"><b>Acciones / acuerdo con el pasajero:</b><br>' + escapeHtml(it.c.actions||'—').split('\n').join('<br>') + '</p>' +
+    '</div>';
+  }).join('');
+
+  const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+    'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Reclamos</title></head>' +
+    '<body style="font-family:Calibri, Arial, sans-serif;">' + head + body + '</body></html>';
+
+  const blob = new Blob(['\ufeff', doc], {type: 'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reclamos_' + (tripConfig.voyage||'viaje') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+initCover();
+</script>
+</body>
+</html>
