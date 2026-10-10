@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- ============ VERSIÓN 40 — 06/10/2026 ============ -->
+<!-- ============ VERSIÓN 43 — 10/10/2026 ============ -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hospitality Pax Tracker v40</title>
+<title>Hospitality Pax Tracker v43</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -206,6 +206,19 @@
   .cover-expand{max-height:0; overflow:hidden; transition:max-height .35s ease;}
   .cover-expand.open{max-height:900px;}
   .new-op-note{font-size:11.5px; color:#1a5fa8; background:#EAF3FF; border:1px solid #cfe4fb; border-radius:8px; padding:8px 10px; margin-bottom:12px;}
+  .tabs-bar{display:flex; gap:6px; margin:0 0 12px;}
+  .tab-btn{flex:1; padding:10px 12px; border:1px solid var(--line); background:#fff; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; color:var(--muted);}
+  .tab-btn.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .conn-banner{display:none; font-size:12px; font-weight:700; padding:7px 12px; border-radius:8px; margin-bottom:10px;}
+  .conn-ok{background:#E1F3E8; color:#1E6B42;} .conn-warn{background:#FBF0DC; color:#8A5A10;}
+  .conn-err{background:#FBE7E7; color:#B02A2A;} .conn-info{background:#EAF3FF; color:#1a5fa8;}
+  .badge.eci{background:#FFE9D6; color:#B35400;} .badge.preland{background:#E8E4FA; color:#4B3FA0;}
+  .badge.postland{background:#D8F1EE; color:#0E6B62;} .badge.wheel{background:#E3EEF9; color:#1A4F8A;}
+  .notes-cat{margin:12px 0 4px; font-size:13px; color:var(--navy);}
+  .notes-list{margin:0; padding-left:18px; font-size:12.5px; line-height:1.5;}
+  .sync-box{font-size:12.5px; line-height:1.6; background:#F7FAFB; border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
+  .day-info{display:none; font-size:12px; background:#EAF3FF; border:1px solid #cfe4fb; border-radius:8px; padding:8px 10px; margin-bottom:10px; line-height:1.5;}
+  .dayfilter-warn{margin-top:4px; color:#8A5A10; font-weight:600;}
   #app{display:none;}
   #configError{
     display:none; position:fixed; inset:0; background:var(--navy); color:#fff;
@@ -247,7 +260,7 @@
     <img class="cover-logo" src="data:image/png;base64,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" alt="ILS Tours">
     <div class="cover-title-row">
       <h1>🚢 Hospitality Pax Tracker</h1>
-      <span class="cover-version-badge">v40</span>
+      <span class="cover-version-badge">v43</span>
     </div>
     <p class="lead">Esta planilla centraliza el trabajo de hospitalidad: la lista de Hospitality, el Cabin Manifest, sus updates y las actualizaciones de la lista de Visa &amp; Documents Check — todo sincronizado en vivo con tu equipo.</p>
     <div class="login-info-box">Escribe tu nombre, tu rol y el Voyage Code, y presiona Continuar.</div>
@@ -300,15 +313,16 @@
         </div>
       </div>
 
-      <div class="cover-section">
-        <label>Día de la operación</label>
-        <select id="coverDay">
+      <div class="cover-section" id="coverPortRow">
+        <label>Puerto de embarque del barco</label>
+        <select id="coverPort" onchange="onPortChange()">
           <option value="">— selecciona —</option>
-          <option value="-2">-2</option>
-          <option value="-1">-1</option>
-          <option value="0">0 (Día de embarque)</option>
+          <option value="KGG">KGG — Fly Cruise (embarque en Santiago 1 día antes que el barco)</option>
+          <option value="PWI">PWI — Antarctica Cruise (mismo día)</option>
         </select>
       </div>
+      <div class="new-op-note" id="coverItin" style="display:none;"></div>
+      <div class="sync-box" id="syncCoverBox" style="display:none; margin-bottom:12px;"></div>
 
       <div class="cover-section" id="coverFileSection">
         <label>Lista de pasajeros — planilla de hospitality (opcional)</label>
@@ -324,7 +338,7 @@
 <div id="app">
 <header class="top">
   <div>
-    <h1 id="tripTitle" style="display:inline;">Hospitality Pax Tracker</h1> <span style="font-size:10px;color:#9FC1D6;font-weight:700;">v40</span>
+    <h1 id="tripTitle" style="display:inline;">Hospitality Pax Tracker</h1> <span style="font-size:10px;color:#9FC1D6;font-weight:700;">v43</span>
     <div class="sub" id="tripSub">Sin configurar aún</div>
   </div>
   <div style="display:flex; gap:8px; align-items:center;">
@@ -337,6 +351,12 @@
 <div class="wrap">
   <div class="readonly-banner" id="readonlyBanner" style="display:none;">👁 Estás en modo solo lectura (Journey Manager): puedes ver toda la información, pero no editar ni gestionar nada.</div>
 
+  <div class="conn-banner" id="connBanner"></div>
+  <div class="tabs-bar">
+    <button class="tab-btn" id="tabBtnInfo" onclick="showTab('info')">🗂 Info del viaje</button>
+    <button class="tab-btn active" id="tabBtnPax" onclick="showTab('pax')">👥 Pasajeros</button>
+  </div>
+  <div id="tabInfo" style="display:none;">
   <div class="panel">
     <h2>Datos del viaje</h2>
     <div class="compact-row">
@@ -358,11 +378,16 @@
         <label>Voyage Code</label>
         <input type="text" id="cfgVoyage" disabled style="background:#F0F3F4;">
       </div>
+ <div class="compact-field">
+        <label>Puerto de embarque</label>
+        <select id="cfgPort"><option value="">— selecciona —</option><option value="KGG">KGG (Fly Cruise)</option><option value="PWI">PWI (Antarctica)</option></select>
+      </div>
       <div class="compact-field" style="flex:0 0 auto;">
         <label>&nbsp;</label>
         <button class="btn secondary" id="saveTripConfigBtn" onclick="saveTripConfig()">Guardar cambios</button>
       </div>
     </div>
+    <div class="counter" id="cfgItin" style="margin-top:8px; font-weight:600;"></div>
   </div>
 
   <div class="panel" id="schedulePanel">
@@ -418,12 +443,26 @@
     </div>
     <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn ghost small" onclick="exportGeneral()">📄 Descargar reporte general (Word)</button>
+      <button class="btn ghost small" onclick="exportPaxExcel()">📊 Descargar pasajeros (Excel)</button>
       <button class="btn ghost small" onclick="exportVisas()">🛂 Exportar visas con foto (Word)</button>
       <button class="btn ghost small" onclick="exportVisaZip()">📷 Descargar fotos de visa (ZIP)</button>
       <button class="btn danger small" id="clearAllVisasBtn" onclick="clearAllVisas()" title="Por si se marcó visa a todos por error (ej. una columna mal mapeada)">🗑 Quitar visa a todos los marcados</button>
     </div>
   </div>
 
+  <div class="panel">
+    <h2>Notas de Operación (desde la planilla)</h2>
+    <div class="counter" style="margin-bottom:6px;">Notas cargadas automáticamente desde la hoja NOTAS OPERACION del Excel; son de referencia, no se editan aquí.</div>
+    <div id="notesBody"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Estado de sincronización</h2>
+    <div class="sync-box" id="syncAppBox"></div>
+  </div>
+  </div>
+
+  <div id="tabPax">
   <div class="panel">
     <div class="toprow" style="margin-bottom:10px;">
       <h2 style="margin:0;">Pasajeros <span class="counter" id="paxCount"></span></h2>
@@ -443,8 +482,18 @@
       <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); white-space:nowrap; margin:0; font-weight:600; cursor:pointer;">
         <input type="checkbox" id="onlySpecial" onchange="render()"> 🍽 Solo comida especial
       </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); white-space:nowrap; margin:0; font-weight:600; cursor:pointer;">
+        <input type="checkbox" id="onlyReq" onchange="render()"> <span id="onlyReqLbl">⭐ Con requerimientos (0)</span>
+      </label>
+      <select id="dayFilter" onchange="render()" style="width:auto; padding:5px 8px; font-size:12px;">
+        <option value="">Llegada: todos los días</option>
+        <option value="-3">Día -3</option><option value="-2">Día -2</option><option value="-1">Día -1</option>
+        <option value="0">Día de embarque</option>
+      </select>
     </div>
+    <div class="day-info" id="dayFilterInfo"></div>
     <div id="paxList"></div>
+  </div>
   </div>
 
   <div style="text-align:center; margin-top:30px; padding-bottom:10px;">
@@ -452,6 +501,22 @@
   </div>
 
 </div>
+</div>
+
+<div class="modal-bg" id="reqModal">
+  <div class="modal">
+    <h3>Requerimientos rápidos</h3>
+    <div id="reqPaxLabel" class="counter" style="margin-bottom:10px;"></div>
+    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqEarly"> 🛎 Early check-in</label>
+    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqPre"> 🧳 Pre land</label>
+    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqPost"> 🏨 Post land</label>
+    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqWheel"> ♿ Silla de ruedas</label>
+    <div class="counter">Si lo marcas o desmarcas a mano, esa decisión se respeta aunque se vuelva a subir la planilla.</div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('reqModal')">Cancelar</button>
+      <button class="btn" onclick="saveReq()">Guardar</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-bg" id="claimModal">
@@ -562,6 +627,11 @@
       <label id="mapLbl9">Columna 9</label>
       <select id="mapSel9" onchange="updateMapPreview()"></select>
     </div>
+    <div id="mapRow10" style="margin-top:10px; display:none;"><label id="mapLbl10">Columna 10</label><select id="mapSel10" onchange="updateMapPreview()"></select></div>
+    <div id="mapRow11" style="margin-top:10px; display:none;"><label id="mapLbl11">Columna 11</label><select id="mapSel11" onchange="updateMapPreview()"></select></div>
+    <div id="mapRow12" style="margin-top:10px; display:none;"><label id="mapLbl12">Columna 12</label><select id="mapSel12" onchange="updateMapPreview()"></select></div>
+    <div id="mapRow13" style="margin-top:10px; display:none;"><label id="mapLbl13">Columna 13</label><select id="mapSel13" onchange="updateMapPreview()"></select></div>
+    <div id="mapRow14" style="margin-top:10px; display:none;"><label id="mapLbl14">Columna 14</label><select id="mapSel14" onchange="updateMapPreview()"></select></div>
     <div id="mapPreview" style="margin-top:12px; font-size:11.5px; background:#F7FAFB; border-radius:6px; padding:8px 10px; display:none;"></div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="cancelMap()">Cancelar</button>
@@ -612,7 +682,7 @@ try{
   } else {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    firebase.auth().signInAnonymously().catch(function(e){ console.error('Auth anónima falló:', e); });
+    window.authReady = firebase.auth().signInAnonymously().catch(function(e){ console.error('Auth anónima falló:', e); });
     firebaseReady = true;
   }
 }catch(e){
@@ -626,6 +696,509 @@ if(!firebaseReady){
   const idByReason = {placeholder:'configErrorPlaceholder', sdk:'configErrorSdk', other:'configErrorOther'};
   document.getElementById(idByReason[configErrorReason] || 'configErrorPlaceholder').style.display = 'block';
 }
+
+/* ============================================================
+   v42 — FECHAS, ITINERARIO, REQUERIMIENTOS Y TRANSPORTE
+   ============================================================ */
+const MONTHS_MAP = {
+  jan:1,january:1,ene:1,enero:1,feb:2,february:2,febrero:2,mar:3,march:3,marzo:3,apr:4,april:4,abr:4,abril:4,
+  may:5,mayo:5,jun:6,june:6,junio:6,jul:7,july:7,julio:7,aug:8,august:8,ago:8,agosto:8,
+  sep:9,sept:9,september:9,septiembre:9,setiembre:9,oct:10,october:10,octubre:10,nov:11,november:11,noviembre:11,
+  dec:12,december:12,dic:12,diciembre:12
+};
+const MONTH_ABBR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function validYMD(y,m,d){
+  if(!(y>=1900 && y<=2200 && m>=1 && m<=12 && d>=1 && d<=31)) return false;
+  const t = new Date(Date.UTC(y,m-1,d));
+  return t.getUTCFullYear()===y && t.getUTCMonth()===m-1 && t.getUTCDate()===d;
+}
+function ymdToISO(y,m,d){ return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0'); }
+function isoToDayNum(iso){ const a = iso.split('-').map(Number); return Math.round(Date.UTC(a[0],a[1]-1,a[2]) / 86400000); }
+function addDaysISO(iso, n){
+  const a = iso.split('-').map(Number);
+  const t = new Date(Date.UTC(a[0],a[1]-1,a[2]+n));
+  return ymdToISO(t.getUTCFullYear(), t.getUTCMonth()+1, t.getUTCDate());
+}
+function fmtShortISO(iso){
+  if(!iso) return '—';
+  const a = iso.split('-').map(Number);
+  return String(a[2]).padStart(2,'0') + '-' + MONTH_ABBR[a[1]-1];
+}
+// Devuelve 'YYYY-MM-DD' o null. Entiende texto, formatos numéricos y número de Excel.
+function parseDateAny(v){
+  if(v === undefined || v === null || v === '') return null;
+  if(v instanceof Date && !isNaN(v)) return ymdToISO(v.getUTCFullYear(), v.getUTCMonth()+1, v.getUTCDate());
+  if(typeof v === 'number'){
+    if(v >= 20000 && v <= 80000){
+      const t = new Date(Date.UTC(1899,11,30) + Math.floor(v)*86400000);
+      return ymdToISO(t.getUTCFullYear(), t.getUTCMonth()+1, t.getUTCDate());
+    }
+    return null;
+  }
+  let s = String(v).trim().toLowerCase();
+  if(!s) return null;
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+  s = s.replace(/[‐-―−]/g,'-');          // guiones largos / menos tipográfico
+  s = s.replace(/\bde\b/g,' ').replace(/[,]/g,' ').replace(/\s+/g,' ').trim();
+  s = s.replace(/\s+\d{1,2}:\d{2}.*$/,'');             // hora al final ("... 08:30")
+  if(/^\d{5}(\.\d+)?$/.test(s)) return parseDateAny(parseFloat(s));
+  let m;
+  // 2026-10-18 · 2026/10/18 · 2026.10.18
+  if((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/))){
+    const y=+m[1], mo=+m[2], d=+m[3];
+    return validYMD(y,mo,d) ? ymdToISO(y,mo,d) : null;
+  }
+  // 18-10-2026 · 18/10/2026 · 18.10.2026 (si el 2º número es >12 se interpreta mes/día)
+  if((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))){
+    let a=+m[1], b=+m[2], y=+m[3]; if(y < 100) y += 2000;
+    if(validYMD(y,b,a)) return ymdToISO(y,b,a);
+    if(validYMD(y,a,b)) return ymdToISO(y,a,b);
+    return null;
+  }
+  // 18-oct-2026 · 18 oct 2026 · 18 octubre 2026 · 18-OCT-26
+  if((m = s.match(/^(\d{1,2})[-\/. ]*([a-z]{3,10})\.?[-\/. ]*(\d{2,4})$/)) && MONTHS_MAP[m[2]]){
+    let y=+m[3]; if(y < 100) y += 2000;
+    const d=+m[1], mo=MONTHS_MAP[m[2]];
+    return validYMD(y,mo,d) ? ymdToISO(y,mo,d) : null;
+  }
+  // oct 18, 2026 · october 18 2026
+  if((m = s.match(/^([a-z]{3,10})\.?[-\/. ]*(\d{1,2})(?:st|nd|rd|th)?[-\/. ]+(\d{2,4})$/)) && MONTHS_MAP[m[1]]){
+    let y=+m[3]; if(y < 100) y += 2000;
+    const d=+m[2], mo=MONTHS_MAP[m[1]];
+    return validYMD(y,mo,d) ? ymdToISO(y,mo,d) : null;
+  }
+  return null;
+}
+// "-3", "−2", "Día -1", "Day -2", "D-1" → -3, -2, -1, -2, -1 (si no es relativo, null)
+function parseRelDay(v){
+  if(v === undefined || v === null || v === '') return null;
+  if(typeof v === 'number') return (Number.isInteger(v) && v >= -9 && v <= -1) ? v : null;
+  let s = String(v).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  s = s.replace(/[‐-―−]/g,'-');
+  const m = s.match(/^(?:dia|day|d)?\s*(-\s*\d{1,2})$/);
+  if(!m) return null;
+  const n = parseInt(m[1].replace(/\s+/g,''),10);
+  return (n >= -9 && n <= -1) ? n : null;
+}
+// EV261020006 → {ship:'EV', iso:'2026-10-20', days:6}
+function parseVoyageCode(code){
+  const m = String(code||'').trim().toUpperCase().replace(/\s+/g,'').match(/^([A-Z0-9]{2})(\d{2})(\d{2})(\d{2})(\d{3})$/);
+  if(!m) return null;
+  const y = 2000 + (+m[2]), mo = +m[3], d = +m[4];
+  if(!validYMD(y,mo,d)) return null;
+  return {ship:m[1], iso:ymdToISO(y,mo,d), days:+m[5]};
+}
+// Itinerario: fecha del barco, embarque en Santiago y días -1/-2/-3.
+function getItinerary(cfg){
+  cfg = cfg || tripConfig || {};
+  const code = cfg.voyage || currentVoyage || '';
+  const v = parseVoyageCode(code);
+  const shipISO = v ? v.iso : (parseDateAny(cfg.date) || null);
+  const port = (cfg.port === 'PWI') ? 'PWI' : (cfg.port === 'KGG' ? 'KGG' : '');
+  if(!shipISO || !port) return {shipISO, port, santiagoISO:null, days:{}, ok:false, voyage:v};
+  const santiagoISO = port === 'KGG' ? addDaysISO(shipISO,-1) : shipISO;
+  const days = {};
+  [1,2,3].forEach(n => { days[-n] = addDaysISO(santiagoISO, -n); });
+  return {shipISO, port, santiagoISO, days, ok:true, voyage:v};
+}
+function itineraryText(it){
+  if(!it.shipISO) return 'Falta la fecha del barco (el Voyage Code no se pudo leer y no hay fecha en Datos del viaje).';
+  if(!it.port) return 'Barco: ' + fmtShortISO(it.shipISO) + ' · Falta elegir el Puerto de embarque (KGG o PWI).';
+  return 'Barco: ' + fmtShortISO(it.shipISO) + ' · Embarque Santiago: ' + fmtShortISO(it.santiagoISO) +
+    ' (' + (it.port === 'KGG' ? 'KGG, 1 día antes' : 'PWI, mismo día') + ')' +
+    ' · Día -1: ' + fmtShortISO(it.days[-1]) + ' · Día -2: ' + fmtShortISO(it.days[-2]) + ' · Día -3: ' + fmtShortISO(it.days[-3]);
+}
+// Información de llegada de un pasajero: {rel, iso, raw, bad}
+function arrivalInfo(p, it){
+  const raw = (p && p.arrivalRaw !== undefined && p.arrivalRaw !== null) ? String(p.arrivalRaw).trim() : '';
+  if(!raw) return {rel:null, iso:null, raw:'', bad:false};
+  const rel = parseRelDay(raw);
+  if(rel !== null) return {rel, iso:null, raw, bad:false};
+  const asNum = /^\d{5}(\.\d+)?$/.test(raw) ? parseFloat(raw) : raw;
+  const iso = parseDateAny(asNum);
+  if(!iso) return {rel:null, iso:null, raw, bad:true};
+  let r = null;
+  if(it && it.santiagoISO) r = isoToDayNum(iso) - isoToDayNum(it.santiagoISO);
+  return {rel:r, iso, raw, bad:false};
+}
+
+/* ----- Requerimientos: detección automática desde los textos del pasajero ----- */
+function paxTexts(p){
+  return [p.vip, p.specialRequest, p.remarks, p.hotelComments, p.transferComments]
+    .filter(Boolean).map(x => String(x)).join(' | ');
+}
+function normTxt(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function autoFlags(p){
+  const all = normTxt(paxTexts(p));
+  const f = {earlyCI:false, preLand:false, postLand:false, wheelchair:false, noBP:false};
+  if(!all) return f;
+  f.earlyCI = /early[\s\-]*check[\s\-]*in|early[\s\-]*checkin|early\s*c\/i|\beci\b/.test(all);
+  const landProg = /land\s*program/.test(all);
+  const pre  = /pre[\s\-]?land/.test(all) || (landProg && /\bpre\b/.test(all)) || /\d+\s*nts?\s*pre\b/.test(all);
+  const post = /post[\s\-]?land/.test(all) || (landProg && /\bpost\b/.test(all)) || /\d+\s*nts?\s*post\b/.test(all);
+  f.preLand = pre || (landProg && !pre && !post);
+  f.postLand = post;
+  f.wheelchair = /wheel\s*chair|\bwch[rsc]\b|silla\s+de\s+ruedas/.test(all);
+  f.noBP = /sin\s+boarding|no\s+boarding|without\s+boarding/.test(all);
+  return f;
+}
+const MANUAL_FLAGS = ['earlyCI','preLand','postLand','wheelchair'];
+function effFlags(p){
+  const f = autoFlags(p);
+  const m = p.flagsManual || {};
+  MANUAL_FLAGS.forEach(k => { if(typeof m[k] === 'boolean') f[k] = m[k]; });
+  return f;
+}
+function paxTags(p){
+  const t = {vip:'', venetian:false, birthday:null, meals:[]};
+  const sources = [p.vip, p.specialRequest, p.remarks, p.hotelComments, p.transferComments].filter(Boolean).map(String);
+  const all = normTxt(sources.join(' | '));
+  if(/\b3\s*vip\b/.test(all)) t.vip = '3VIP';
+  else if(/\bvip\b|v\s*important\s*guest|very\s*important/.test(all)) t.vip = 'VIP';
+  if(/venetian|veneciano/.test(all)) t.venetian = true;
+  // Cumpleaños: busca la fecha junto a la palabra (ej. "BIRTHDAY 20 OCT")
+  for(const src of sources){
+    const n = normTxt(src);
+    const bm = n.match(/(birthday|bday|b-day|cumple[a-z]*)/);
+    if(bm){
+      const rest = n.slice(bm.index + bm[0].length);
+      const dm = rest.match(/(\d{1,2})\s*(?:de\s*)?([a-z]{3,9})/) || rest.match(/([a-z]{3,9})\.?\s*(\d{1,2})/);
+      let dateTxt = '';
+      if(dm){
+        const a = dm[1], b = dm[2];
+        const num = /^\d/.test(a) ? a : b, mon = /^\d/.test(a) ? b : a;
+        if(MONTHS_MAP[mon]) dateTxt = String(+num).padStart(2,'0') + ' ' + MONTH_ABBR[MONTHS_MAP[mon]-1].toUpperCase();
+      }
+      t.birthday = dateTxt || '';
+      break;
+    }
+  }
+  // Comidas especiales: siglas del Special Request que no sean otra marca
+  String(p.specialRequest||'').split(/[,;\/]+/).map(s=>s.trim()).filter(Boolean).forEach(c=>{
+    const n = normTxt(c);
+    if(/birth|bday|b-day|cumple|venetian|veneciano|\bvip\b|\b3\s*vip\b|wheel|wch|silla|early|land\s*program|pre[\s-]?land|post[\s-]?land|boarding/.test(n)) return;
+    t.meals.push(c.toUpperCase());
+  });
+  return t;
+}
+function hasRequirement(p){
+  const t = paxTags(p), f = effFlags(p);
+  return !!(t.vip || t.venetian || t.birthday !== null || t.meals.length || f.earlyCI || f.preLand || f.postLand || f.wheelchair || f.noBP);
+}
+
+/* ----- Transporte: SDK normal o "modo alterno" por API REST ----- */
+let restMode = false;
+const DB_URL = (firebaseConfig.databaseURL || '').replace(/\/$/,'');
+const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+function genPushId(){
+  let now = Date.now(), id = '';
+  for(let i=7;i>=0;i--){ id = PUSH_CHARS.charAt(now % 64) + id; now = Math.floor(now / 64); }
+  for(let i=0;i<12;i++) id += PUSH_CHARS.charAt(Math.floor(Math.random()*64));
+  return id;
+}
+function restUrl(path){ return DB_URL + '/' + path.split('/').map(encodeURIComponent).join('/') + '.json'; }
+function restSnap(v, key){ return {val:()=> (v===undefined?null:v), exists:()=> v!==null && v!==undefined, key:key||null}; }
+async function restFetch(url, method, body){
+  const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const timer = setTimeout(()=>{ if(ctl) ctl.abort(); }, 15000);
+  try{
+    const res = await fetch(url, {method:method||'GET', body: body===undefined?undefined:JSON.stringify(body), signal: ctl?ctl.signal:undefined});
+    if(!res.ok){ const e = new Error('HTTP ' + res.status); e.code = 'HTTP_' + res.status; throw e; }
+    return await res.json();
+  }catch(e){
+    if(!e.code) e.code = (e.name === 'AbortError') ? 'TIMEOUT' : 'NETWORK';
+    throw e;
+  }finally{ clearTimeout(timer); }
+}
+class RestRef {
+  constructor(path){ this.path = path; this.key = path.split('/').pop(); this._timer = null; }
+  async once(){ return restSnap(await restFetch(restUrl(this.path)), this.key); }
+  set(v){ return restFetch(restUrl(this.path), 'PUT', v === undefined ? null : v); }
+  update(o){ return restFetch(restUrl(this.path), 'PATCH', o); }
+  push(v){
+    const key = genPushId(); const child = new RestRef(this.path + '/' + key);
+    if(v === undefined) return child;
+    const pr = child.set(v); pr.key = key; return pr;
+  }
+  async transaction(fn){
+    const cur = (await this.once()).val();
+    const nv = fn(cur);
+    if(nv !== undefined) await this.set(nv);
+    return {committed: nv !== undefined, snapshot: restSnap(nv === undefined ? cur : nv, this.key)};
+  }
+  on(ev, cb, errCb){
+    this.off();
+    const tick = async ()=>{
+      try{ const snap = await this.once(); if(this._timer !== null) cb(snap); }
+      catch(e){ if(errCb) errCb(e); }
+    };
+    this._timer = setInterval(tick, window.__POLL_MS || 15000);
+    tick();
+  }
+  off(){ if(this._timer){ clearInterval(this._timer); this._timer = null; } }
+}
+function opRef(voyage, path){
+  const p = 'operaciones/' + voyage + (path ? ('/' + path) : '');
+  return restMode ? new RestRef(p) : db.ref(p);
+}
+// Espera hasta ~10 s a que el SDK conecte; si no, cambia a modo alterno (REST).
+function initTransport(){
+  const TO = window.__SDK_TIMEOUT_MS || 10000;
+  window.transportReady = new Promise(res=>{
+    let done = false;
+    const finish = m => { if(done) return; done = true; restMode = (m === 'rest'); res(m); updateConnBanner(); };
+    try{ db.ref('.info/connected').on('value', s => { if(s.val() === true) finish('sdk'); }); }
+    catch(e){ finish('rest'); }
+    setTimeout(()=> finish('rest'), TO);
+  });
+}
+
+/* ============================================================
+   v42 — PESTAÑAS, CONEXIÓN, SINCRONIZACIÓN, NOTAS, FILTROS
+   ============================================================ */
+let connState = 'idle';     // idle | connecting | ok | empty | error
+let connErr = '';
+let cloudCount = null;
+let activeTab = 'pax';
+let pendingNotesData = null;
+let lastRenderedCount = 0;
+
+function showTab(name){
+  activeTab = name;
+  document.getElementById('tabInfo').style.display = name === 'info' ? 'block' : 'none';
+  document.getElementById('tabPax').style.display = name === 'pax' ? 'block' : 'none';
+  document.getElementById('tabBtnInfo').classList.toggle('active', name === 'info');
+  document.getElementById('tabBtnPax').classList.toggle('active', name === 'pax');
+  if(name === 'pax') render();
+}
+function updateConnBanner(){
+  const el = document.getElementById('connBanner');
+  if(!el) return;
+  const id = currentVoyage || '—';
+  const alt = restMode ? ' (modo alterno)' : '';
+  let txt = '', cls = 'conn-info';
+  if(!currentVoyage){ el.style.display = 'none'; return; }
+  if(connState === 'ok'){ txt = 'conectado a ' + id + ' — ' + cloudCount + ' pasajeros ✓' + alt; cls = 'conn-ok'; }
+  else if(connState === 'empty'){ txt = 'sin datos en la nube para ' + id + ' — revisa el ID de operación' + alt; cls = 'conn-warn'; }
+  else if(connState === 'error'){ txt = 'error de conexión con ' + id + ' (' + (connErr || 'desconocido') + ')' + alt; cls = 'conn-err'; }
+  else { txt = 'conectando a ' + id + '…' + alt; }
+  el.className = 'conn-banner ' + cls;
+  el.textContent = txt;
+  el.style.display = 'block';
+  renderSyncCard();
+}
+function renderSyncCard(){
+  const box = document.getElementById('syncAppBox');
+  if(!box) return;
+  const meta = window.__lastMeta || null;
+  box.innerHTML =
+    '<div><b>ID de operación:</b> ' + escapeHtml(currentVoyage||'—') + (restMode ? ' <span class="counter">(modo alterno)</span>' : '') + '</div>' +
+    '<div><b>Pasajeros en la nube:</b> ' + (cloudCount === null ? '—' : cloudCount) + '</div>' +
+    '<div><b>Última actualización:</b> ' + (meta && meta.ts ? escapeHtml(meta.ts) + (meta.by ? ' — ' + escapeHtml(meta.by) : '') : '—') + '</div>' +
+    '<div><b>Pasajeros visibles en pantalla:</b> ' + lastRenderedCount + '</div>' +
+    '<div style="margin-top:8px;"><button class="btn secondary small" onclick="reloadFromCloud()">↻ Recargar desde la nube</button></div>';
+}
+async function loadMeta(voyage){
+  try{ const s = await opRef(voyage,'meta/lastUpdate').once('value'); window.__lastMeta = s.val(); }catch(e){}
+}
+async function reloadFromCloud(){
+  connState = 'connecting'; updateConnBanner();
+  try{
+    const snap = await opRef(currentVoyage,'passengers').once('value');
+    passengersDb = snap.val() || {};
+    cloudCount = Object.keys(passengersDb).length;
+    connState = cloudCount ? 'ok' : 'empty'; connErr = '';
+    await loadMeta(currentVoyage);
+    render();
+  }catch(e){ connState = 'error'; connErr = e.code || e.message; }
+  updateConnBanner();
+}
+async function commitUpdates(updates){
+  updates['meta/lastUpdate'] = {ts: nowStr(), by: staffName || ''};
+  await opRef(currentVoyage).update(updates);
+  window.__lastMeta = updates['meta/lastUpdate'];
+}
+
+/* ----- Portada: itinerario, tarjeta de sincronización, IDs parecidos ----- */
+function onPortChange(){ updateCoverItinerary(); }
+function updateCoverItinerary(){
+  const el = document.getElementById('coverItin');
+  if(!el) return;
+  const voyage = normVoyage(document.getElementById('coverVoyage').value);
+  const port = document.getElementById('coverPort') ? document.getElementById('coverPort').value : '';
+  const cfg = pendingVoyageExists && pendingTripConfig ? Object.assign({}, pendingTripConfig, {voyage}) : {voyage, port, date:''};
+  const it = getItinerary(cfg);
+  el.textContent = '🗓 ' + itineraryText(it);
+  el.style.display = 'block';
+}
+async function fetchVoyageIds(){
+  try{
+    const r = await fetch(DB_URL + '/operaciones.json?shallow=true');
+    if(!r.ok) return [];
+    return Object.keys((await r.json()) || {});
+  }catch(e){ return []; }
+}
+function canonVoyage(s){ return String(s||'').toUpperCase().replace(/[\s\-_]+/g,''); }
+async function renderCoverSync(voyage){
+  const box = document.getElementById('syncCoverBox');
+  if(!box) return;
+  box.style.display = 'block';
+  box.innerHTML = '<div class="counter">Consultando la nube…</div>';
+  let count = '—', meta = null, err = '';
+  try{
+    const p = await opRef(voyage,'passengers').once('value');
+    count = Object.keys(p.val() || {}).length;
+    const m = await opRef(voyage,'meta/lastUpdate').once('value'); meta = m.val();
+  }catch(e){ err = e.code || e.message; }
+  box.innerHTML =
+    '<div style="font-weight:700; margin-bottom:4px;">Estado de sincronización</div>' +
+    '<div><b>ID de operación:</b> ' + escapeHtml(voyage) + (restMode ? ' <span class="counter">(modo alterno)</span>' : '') + '</div>' +
+    (err ? '<div style="color:var(--coral);"><b>Error:</b> ' + escapeHtml(err) + '</div>' : '') +
+    '<div><b>Pasajeros en la nube:</b> ' + count + '</div>' +
+    '<div><b>Última actualización:</b> ' + (meta && meta.ts ? escapeHtml(meta.ts) + (meta.by ? ' — ' + escapeHtml(meta.by) : '') : '—') + '</div>' +
+    '<div><b>Pasajeros visibles en pantalla:</b> 0 (aún no entras a la operación)</div>' +
+    '<div style="margin-top:8px;"><button class="btn secondary small" onclick="renderCoverSync(\'' + voyage.replace(/'/g,'') + '\')">↻ Recargar desde la nube</button></div>';
+}
+
+/* ----- Notas operacionales ----- */
+function notesList(data){
+  const items = (data && data.items) ? (Array.isArray(data.items) ? data.items : Object.values(data.items)) : [];
+  return items.map(it => ({category: it.category || it.cat || 'Sin categoría', item: it.item || '', detail: it.detail || ''}));
+}
+// Agrupa por categoría, en el orden en que cada una aparece por primera vez.
+function notesGroups(items){
+  const groups = {}, order = [];
+  items.forEach(it=>{ if(!groups[it.category]){ groups[it.category] = []; order.push(it.category); } groups[it.category].push(it); });
+  return order.map(c => ({category:c, items:groups[c]}));
+}
+function renderNotes(data){
+  const box = document.getElementById('notesBody');
+  const items = notesList(data);
+  window.__notes = items;
+  if(!box) return;
+  if(!items.length){
+    box.innerHTML = '<div style="color:#8A97A0; font-size:12.5px;">Sube la planilla para ver aquí las notas de operación (VIP, hoteles, buses, vuelos, comidas especiales, etc.).</div>';
+    return;
+  }
+  box.innerHTML = notesGroups(items).map(g =>
+    '<div style="font-weight:700; color:var(--navy); font-size:12.5px; margin:12px 0 4px;">' + escapeHtml(g.category) + '</div>' +
+    '<ul class="notes-list">' + g.items.map(it =>
+      '<li><b>' + escapeHtml(it.item) + '</b>' + (it.detail ? ': ' + escapeHtml(it.detail) : '') + '</li>').join('') + '</ul>'
+  ).join('');
+}
+function notesWordHtml(){
+  const items = window.__notes || [];
+  if(!items.length) return '';
+  return wordSectionTitle('Notas de Operación (desde la planilla)') + notesGroups(items).map(g =>
+    '<p style="font-family:Calibri, Arial, sans-serif; font-size:10.5pt; font-weight:bold; color:#0F2A43; margin:8pt 0 2pt;">' + escapeHtml(g.category) + '</p>' +
+    '<ul style="font-family:Calibri, Arial, sans-serif; font-size:9.5pt; margin:0 0 4pt 16pt;">' + g.items.map(it =>
+      '<li><b>' + escapeHtml(it.item) + '</b>' + (it.detail ? ': ' + escapeHtml(it.detail) : '') + '</li>').join('') + '</ul>').join('');
+}
+let notesRef = null;
+function attachNotesListener(){
+  if(notesRef) notesRef.off();
+  notesRef = opRef(currentVoyage, 'notes');
+  notesRef.on('value', snap => renderNotes(snap.val()), ()=>{});
+}
+async function saveNotes(items){
+  if(!items || !items.length) return;
+  try{ await opRef(currentVoyage,'notes').set({items, ts: nowStr(), by: staffName||''}); window.__notes = items; }catch(e){ console.error('notas', e); }
+}
+
+/* ----- Filtros por día de llegada / requerimientos ----- */
+function dayFilterValue(){
+  const el = document.getElementById('dayFilter');
+  return el ? el.value : '';
+}
+function buildDayFilterInfo(entriesAll, filtered, dayVal){
+  const box = document.getElementById('dayFilterInfo');
+  if(!box) return;
+  const it = getItinerary();
+  let html = '<div>🗓 ' + escapeHtml(itineraryText(it)) + '</div>';
+  if(dayVal !== ''){
+    const n = parseInt(dayVal,10);
+    const label = n === 0 ? 'Día de embarque' : ('Día ' + n);
+    const dateTxt = it.ok ? (n === 0 ? it.santiagoISO : it.days[n]) : null;
+    html += '<div><b>Filtro ' + label + (dateTxt ? ' (' + fmtShortISO(dateTxt) + ')' : '') + ':</b> ' + filtered + ' pasajeros</div>';
+    if(filtered === 0){
+      const counts = {}; let bad = 0, rels = {}, nodate = 0;
+      entriesAll.forEach(p=>{
+        const a = arrivalInfo(p, it);
+        if(a.bad){ bad++; return; }
+        if(a.rel !== null && !a.iso){ rels[a.rel] = (rels[a.rel]||0) + 1; return; }
+        if(a.iso){ counts[a.iso] = (counts[a.iso]||0) + 1; return; }
+        nodate++;
+      });
+      const parts = Object.keys(counts).sort().map(k => fmtShortISO(k) + ' (' + counts[k] + ')')
+        .concat(Object.keys(rels).sort((a,b)=>a-b).map(k => 'Día ' + k + ' (' + rels[k] + ')'));
+      html += '<div class="dayfilter-warn">Sin pasajeros para este día. Llegadas que hay en la planilla: ' + (parts.length ? parts.join(' · ') : 'ninguna con fecha') +
+        '. Valores que no se pudieron leer como fecha: ' + bad + '. Pasajeros sin fecha de llegada: ' + nodate + '.' +
+        (it.ok ? '' : ' ⚠ Falta ' + (!it.shipISO ? 'la fecha de la operación' : 'elegir el puerto de embarque (KGG/PWI)') + ' para calcular los días.') + '</div>';
+    }
+  }
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+/* ----- Modal de requerimientos rápidos ----- */
+let reqKey = null;
+function openReqModal(key){
+  if(isReadOnly()){ alert('Tu rol (Journey Manager) es de solo lectura.'); return; }
+  reqKey = key;
+  const p = passengersDb[key]; const f = effFlags(p);
+  document.getElementById('reqPaxLabel').innerHTML = '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking);
+  document.getElementById('reqEarly').checked = f.earlyCI;
+  document.getElementById('reqPre').checked = f.preLand;
+  document.getElementById('reqPost').checked = f.postLand;
+  document.getElementById('reqWheel').checked = f.wheelchair;
+  openModal('reqModal');
+}
+async function saveReq(){
+  const p = passengersDb[reqKey]; if(!p) return;
+  const f = effFlags(p);
+  const now = {earlyCI:document.getElementById('reqEarly').checked, preLand:document.getElementById('reqPre').checked,
+               postLand:document.getElementById('reqPost').checked, wheelchair:document.getElementById('reqWheel').checked};
+  const updates = {};
+  MANUAL_FLAGS.forEach(k => { if(now[k] !== f[k]) updates['passengers/'+reqKey+'/flagsManual/'+k] = now[k]; });
+  try{ if(Object.keys(updates).length) await commitUpdates(updates); }
+  catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
+  closeModal('reqModal');
+}
+
+/* ----- Exportes: columnas de requerimientos ----- */
+function paxExportRows(entries){
+  return entries.map(p=>{
+    const hist = getHistArray(p);
+    const current = hist.length ? hist[hist.length-1].cabin : '—';
+    const del = (p.delivery && p.delivery.delivered)
+      ? (p.delivery.staff||'') + ' — ' + (p.delivery.ts||'') + ' — cabina informada: ' + (p.delivery.cabin||'') : 'Pendiente';
+    const v = p.visa && p.visa.required ? p.visa : null;
+    const visaCell = v ? (visaStatusText(v) + (v.hasPhoto ? ' — con foto' : ' — sin foto')) : 'No requiere';
+    const nClaims = getClaimsArray(p).length;
+    const f = effFlags(p);
+    const travelCell = [p.flight?('Vuelo '+p.flight):'', p.flightTime?('Sale '+p.flightTime):'', p.bus?('Bus '+p.bus):''].filter(Boolean).join(' · ') || '—';
+    return [displayName(p), p.booking||'', current, travelCell, del, visaCell, nClaims ? ('Sí — ' + nClaims) : 'No',
+            p.specialRequest || 'No', f.earlyCI ? 'Sí' : 'No', f.preLand ? 'Sí' : 'No', f.postLand ? 'Sí' : 'No'];
+  });
+}
+const PAX_EXPORT_HEAD = ['Pasajero','Booking','Cabina actual','Vuelo / Bus','Entrega','Visa','Reclamos','Special Request','Early check-in','Pre land','Post land'];
+function exportPaxExcel(){
+  const entries = Object.values(passengersDb);
+  if(!entries.length){ alert('No hay datos para exportar.'); return; }
+  entries.sort((a,b)=> ((typeof a.order==='number'?a.order:1e9) - (typeof b.order==='number'?b.order:1e9)));
+  const rows = paxExportRows(entries);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([PAX_EXPORT_HEAD].concat(rows)), 'Pasajeros');
+  const nl = window.__notes || [];
+  if(nl.length){
+    const nrows = [['Category','Item','Detail']];
+    notesGroups(nl).forEach(g => g.items.forEach(it => nrows.push([g.category, it.item, it.detail])));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(nrows), 'Notas de Operación');
+  }
+  XLSX.writeFile(wb, exportFileName() + '.xlsx');
+}
+
+if(firebaseReady) initTransport();
 
 /* ========================================================= */
 
@@ -656,7 +1229,6 @@ function updateRoleHint(){
   if(hint && sel) hint.style.display = sel.value === 'Journey Manager' ? 'block' : 'none';
 }
 
-function opRef(voyage, path){ return db.ref('operaciones/' + voyage + (path ? ('/' + path) : '')); }
 
 function normalize(s){
   return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
@@ -718,6 +1290,14 @@ function nowStr(){
 // Fecha de hoy en formato YYYY-MM-DD (mismo formato que <input type="date">).
 // Se usa para el staff que se une a una operación ya creada: su turno es hoy,
 // así que no hace falta pedirle que elija la fecha a mano.
+// Día de la operación calculado: hoy respecto al embarque en Santiago (-3, -2, -1, 0). Si no se puede, ''.
+function autoDay(dateISO, cfg){
+  const it = getItinerary(cfg);
+  const iso = parseDateAny(dateISO);
+  if(!it.ok || !iso) return '';
+  const rel = isoToDayNum(iso) - isoToDayNum(it.santiagoISO);
+  return (rel >= -3 && rel <= 0) ? String(rel) : '';
+}
 function todayISO(){
   const d = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -782,7 +1362,24 @@ async function checkVoyage(){
 
   statusEl.innerHTML = '<div class="status-line info">Buscando operación...</div>';
   try{
-    const snap = await opRef(voyage, 'trip').once('value');
+    statusEl.innerHTML = '<div class="status-line info">Conectando con la base de datos…</div>';
+    if(window.transportReady) await window.transportReady;
+    if(!restMode && window.authReady) await Promise.race([window.authReady, new Promise(r=>setTimeout(r,5000))]);
+    statusEl.innerHTML = '<div class="status-line info">Buscando operación...</div>';
+    let snap = await opRef(voyage, 'trip').once('value');
+    if(!snap.exists()){
+      // ¿Existe una operación con un ID parecido (ej. "PRUEBA 2627" vs "PRUEBA2627")?
+      const ids = await fetchVoyageIds();
+      const similar = ids.find(x => x !== voyage && canonVoyage(x) === canonVoyage(voyage));
+      if(similar){
+        const sn = await opRef(similar, 'passengers').once('value');
+        const n = Object.keys(sn.val() || {}).length;
+        if(n > 0 && confirm('No existe "' + voyage + '", pero sí existe "' + similar + '" con ' + n + ' pasajeros.\n\n¿Quieres entrar a "' + similar + '"? (Aceptar = entrar a esa operación; Cancelar = crear "' + voyage + '" como operación nueva)')){
+          document.getElementById('coverVoyage').value = similar;
+          return checkVoyage();
+        }
+      }
+    }
     pendingVoyageExists = snap.exists();
     pendingTripConfig = pendingVoyageExists ? snap.val() : null;
     document.getElementById('newOpNote').style.display = pendingVoyageExists ? 'none' : 'block';
@@ -792,6 +1389,8 @@ async function checkVoyage(){
     // fecha y la planilla Master de Hospitality: al resto del staff solo se
     // le pide su nombre, rol y el día de la operación en el que está.
     document.getElementById('coverShipDateRow').style.display = pendingVoyageExists ? 'none' : 'grid';
+    document.getElementById('coverPortRow').style.display = pendingVoyageExists ? 'none' : 'block';
+    if(!pendingVoyageExists){ const pr = document.getElementById('coverPort'); if(!pr.value) pr.value = ''; }
     document.getElementById('coverFileSection').style.display = pendingVoyageExists ? 'none' : 'block';
     const existingNote = document.getElementById('existingOpNote');
     if(pendingVoyageExists){
@@ -807,6 +1406,8 @@ async function checkVoyage(){
       : '<div class="status-line info">Operación nueva. Completa los datos para crearla.</div>';
     document.getElementById('coverStep1Btn').style.display = 'none';
     document.getElementById('coverExpand').classList.add('open');
+    updateCoverItinerary();
+    renderCoverSync(voyage);
   }catch(e){
     statusEl.innerHTML = '<div class="status-line error">No se pudo conectar a la base de datos. Revisa la configuración de Firebase o tu conexión.</div>';
   }
@@ -821,15 +1422,17 @@ async function submitCoverForm(){
   const voyage = normVoyage(document.getElementById('coverVoyage').value);
   const name = document.getElementById('coverStaffName').value.trim();
   const role = document.getElementById('coverRole').value;
-  const day = document.getElementById('coverDay').value;
   const statusEl = document.getElementById('coverStatus');
   const ship = pendingVoyageExists ? (pendingTripConfig.ship||'') : getShipValue();
   const date = pendingVoyageExists ? todayISO() : document.getElementById('coverDate').value;
+  const port = pendingVoyageExists ? ((pendingTripConfig && pendingTripConfig.port) || '') : document.getElementById('coverPort').value;
   if(!pendingVoyageExists){
     if(!ship){ statusEl.innerHTML = '<div class="status-line error">Selecciona o escribe el barco.</div>'; return; }
     if(!date){ statusEl.innerHTML = '<div class="status-line error">Selecciona la fecha.</div>'; return; }
+    if(!port){ statusEl.innerHTML = '<div class="status-line error">Selecciona el puerto de embarque del barco (KGG o PWI).</div>'; return; }
   }
-  if(day === ''){ statusEl.innerHTML = '<div class="status-line error">Selecciona el día de la operación (-2, -1 o 0).</div>'; return; }
+  // El día de la operación (-3..0) se calcula solo: fecha de hoy vs. embarque en Santiago.
+  const day = autoDay(date, pendingVoyageExists ? Object.assign({}, pendingTripConfig, {voyage}) : {voyage, port, date});
 
   if(pendingVoyageExists){
     staffName = name; currentRole = role; sessionDate = date; sessionDay = day;
@@ -845,24 +1448,29 @@ async function submitCoverForm(){
       await enterApp();
     }
   } else {
-    await createOperation(voyage, name, role, ship, date, day);
+    await createOperation(voyage, name, role, ship, date, day, port);
   }
 }
 
-async function createOperation(voyage, name, role, ship, date, day){
+async function createOperation(voyage, name, role, ship, date, day, port){
   if(!firebaseReady) return;
   const fileInput = document.getElementById('coverFileP');
 
   staffName = name; currentRole = role; sessionDate = date; sessionDay = day;
   currentVoyage = voyage;
-  tripConfig = {ship, date, voyage};
-  passengersDb = {};
-  batchCounter = 0;
-
+  tripConfig = {ship, date, voyage, port: port||''};
   try{
-    await opRef(voyage, 'trip').set(tripConfig);
-    await opRef(voyage, 'passengers').set({});
-    await opRef(voyage, 'batchCounter').set(0);
+    // NUNCA se borra ni se pisa 'passengers': si por una lectura fallida (red lenta,
+    // celular, auth sin terminar) una operación existente se tomó como nueva, antes
+    // esto dejaba la lista de pasajeros en blanco. Ahora solo se escribe la config
+    // del viaje y se inicia el contador si no existía.
+    const existsNow = await opRef(voyage, 'trip').once('value');
+    if(existsNow.exists()){
+      tripConfig = existsNow.val();
+    } else {
+      await opRef(voyage, 'trip').set(tripConfig);
+    }
+    await opRef(voyage, 'batchCounter').transaction(c => (c === null ? 0 : c));
     await opRef(voyage, 'staffLog').push({name, role, date, day, ts: nowStr()});
     try{ localStorage.setItem(LS_STAFF, name); localStorage.setItem(LS_LAST_VOYAGE, voyage); }catch(e){}
   }catch(e){
@@ -885,6 +1493,11 @@ async function enterApp(){
   document.getElementById('cfgShip').value = tripConfig.ship||'';
   document.getElementById('cfgDate').value = tripConfig.date||'';
   document.getElementById('cfgVoyage').value = tripConfig.voyage||'';
+  document.getElementById('cfgPort').value = tripConfig.port||'';
+  updateCfgItinerary();
+  connState = 'connecting'; cloudCount = null; updateConnBanner();
+  loadMeta(currentVoyage);
+  showTab('pax');
   updateTripHeader();
   updateStaffUI();
   applyReadOnlyUI();
@@ -897,15 +1510,36 @@ async function enterApp(){
 
   await loadSchedule();
   attachPaxListener();
+  attachNotesListener();
 }
 
+let paxFirstTimer = null;
 function attachPaxListener(){
   if(paxListenerRef) paxListenerRef.off();
+  if(paxFirstTimer){ clearTimeout(paxFirstTimer); paxFirstTimer = null; }
   paxListenerRef = opRef(currentVoyage, 'passengers');
+  let gotFirst = false;
   paxListenerRef.on('value', snap=>{
+    gotFirst = true;
     passengersDb = snap.val() || {};
+    cloudCount = Object.keys(passengersDb).length;
+    connState = cloudCount ? 'ok' : 'empty'; connErr = '';
+    updateConnBanner();
     if(!modalOpen) render();
+  }, err=>{
+    connState = 'error'; connErr = (err && (err.code || err.message)) || 'desconocido';
+    updateConnBanner();
   });
+  // Si el SDK no responde en ~10 s (redes que bloquean la conexión en tiempo real), pasa a modo alterno.
+  if(!restMode){
+    paxFirstTimer = setTimeout(()=>{
+      if(!gotFirst && !restMode){
+        try{ paxListenerRef.off(); }catch(e){}
+        restMode = true; updateConnBanner();
+        attachPaxListener(); attachNotesListener();
+      }
+    }, window.__SDK_TIMEOUT_MS || 10000);
+  }
 }
 
 function exitOperation(){
@@ -917,6 +1551,11 @@ function exitOperation(){
   document.getElementById('existingOpNote').style.display = 'none';
   document.getElementById('coverShipDateRow').style.display = 'grid';
   document.getElementById('coverFileSection').style.display = 'block';
+  document.getElementById('coverPortRow').style.display = 'block';
+  document.getElementById('syncCoverBox').style.display = 'none';
+  document.getElementById('coverItin').style.display = 'none';
+  if(notesRef){ notesRef.off(); notesRef = null; }
+  connState = 'idle'; cloudCount = null; updateConnBanner();
   document.getElementById('coverStep1Btn').style.display = 'block';
   document.getElementById('coverStatus').innerHTML = '';
   pendingVoyageExists = false;
@@ -992,7 +1631,6 @@ async function confirmResetOperation(){
   document.getElementById('coverShipOther').value = '';
   document.getElementById('coverShipOther').style.display = 'none';
   document.getElementById('coverDate').value = '';
-  document.getElementById('coverDay').value = '';
   document.getElementById('coverFileP').value = '';
   alert('Operación reseteada por completo. Si vuelves a ingresar el mismo Voyage Code, se tratará como una operación nueva: tendrás que cargarlo todo de nuevo.');
   exitOperation();
@@ -1030,9 +1668,10 @@ async function saveTripConfig(){
   if(isReadOnly()){ alert('Tu rol (Journey Manager) es de solo lectura.'); return; }
   tripConfig.ship = document.getElementById('cfgShip').value.trim();
   tripConfig.date = document.getElementById('cfgDate').value;
+  tripConfig.port = document.getElementById('cfgPort').value;
   try{
     await opRef(currentVoyage, 'trip').set(tripConfig);
-    updateTripHeader();
+    updateTripHeader(); updateCfgItinerary(); render();
     alert('Datos del viaje guardados.');
   }catch(e){ alert('No se pudo guardar la configuración.'); }
 }
@@ -1041,7 +1680,7 @@ function applyReadOnlyUI(){
   const ro = isReadOnly();
   const banner = document.getElementById('readonlyBanner');
   if(banner) banner.style.display = ro ? 'block' : 'none';
-  ['fileHosp','fileP','fileC','fileV','cfgShip','cfgDate',
+  ['fileHosp','fileP','fileC','fileV','cfgShip','cfgDate','cfgPort',
    'schedReqStart','schedReqEnd','schedRealStart','schedRealEnd','schedContingencia'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.disabled = ro;
@@ -1085,6 +1724,10 @@ async function saveSchedule(){
     await opRef(currentVoyage, 'days/'+scheduleKey()).set(data);
     alert('Horario y contingencia guardados.');
   }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
+}
+function updateCfgItinerary(){
+  const el = document.getElementById('cfgItin');
+  if(el) el.textContent = '🗓 ' + itineraryText(getItinerary());
 }
 function updateTripHeader(){
   document.getElementById('tripTitle').textContent = tripConfig.ship ? tripConfig.ship : 'Hospitality Pax Tracker';
@@ -1138,7 +1781,27 @@ async function readSheetSmart(file){
   const rows = aoa.slice(headerIdx+1)
     .filter(r => r.some(c => String(c).trim() !== ''))
     .map(r => { const o = {}; headers.forEach((h,i)=>{ o[h] = r[i] !== undefined ? r[i] : ''; }); return o; });
-  return {headers, rows, headerRow: headerIdx+1};
+  // Hoja NOTAS OPERACION (sin importar mayúsculas ni tildes). Encabezados Category / Item / Detail
+  // en la fila 1 (o en las primeras 5 filas). Cada fila siguiente es una nota.
+  let notes = null;
+  const nName = wb.SheetNames.find(n => normalize(n).replace(/\s+/g,' ').trim() === 'notas operacion');
+  if(nName){
+    const na = XLSX.utils.sheet_to_json(wb.Sheets[nName], {header:1, defval:''});
+    let hRow = -1, cC = 0, cI = 1, cD = 2;
+    for(let i=0; i<Math.min(na.length,5); i++){
+      const cells = na[i].map(c => normalize(c));
+      const ci = cells.indexOf('category'), ii = cells.indexOf('item'), di = cells.indexOf('detail');
+      if(ci >= 0 && ii >= 0 && di >= 0){ hRow = i; cC = ci; cI = ii; cD = di; break; }
+    }
+    if(hRow >= 0){
+      const items = na.slice(hRow+1)
+        .map(r => ({category:String(r[cC]||'').trim(), item:String(r[cI]||'').trim(), detail:String(r[cD]||'').trim()}))
+        .filter(n => n.item || n.detail)
+        .map(n => ({category: n.category || 'Sin categoría', item:n.item, detail:n.detail}));
+      if(items.length) notes = items;
+    }
+  }
+  return {headers, rows, headerRow: headerIdx+1, notes};
 }
 
 async function startPassengerMapping(file, afterFn){
@@ -1146,6 +1809,7 @@ async function startPassengerMapping(file, afterFn){
     const parsed = await readSheetSmart(file);
     if(!parsed || !parsed.rows.length){ alert('El archivo está vacío o no encontré datos.'); return false; }
     pendingMapRows = parsed.rows;
+    pendingNotesData = parsed.notes || null;
     pendingAfterMap = afterFn || null;
     openMapModal(parsed.headers, parsed.rows, 'pax');
     return true;
@@ -1174,6 +1838,7 @@ function fmtTimeCell(v){
   if(v instanceof Date){
     return String(v.getHours()).padStart(2,'0') + ':' + String(v.getMinutes()).padStart(2,'0');
   }
+  { const tm = String(v).match(/(\d{1,2}):(\d{2})/); if(tm) return tm[1].padStart(2,'0') + ':' + tm[2]; }
   return String(v).trim();
 }
 async function loadPassengerRows(rows, bookingKey, nombreKey, apellidoKey, cabinKey, visaKey, specialKey, extra){
@@ -1257,6 +1922,12 @@ async function loadPassengerRows(rows, bookingKey, nombreKey, apellidoKey, cabin
       const v = fmtTimeCell(r[extra.ftime]);
       if(v) updates['passengers/'+k+'/flightTime'] = v;
     }
+    [['arrival','arrivalRaw'],['vip','vip'],['remarks','remarks'],['hotelc','hotelComments'],['transc','transferComments']].forEach(pair=>{
+      if(!extra[pair[0]]) return;
+      const raw = r[extra[pair[0]]];
+      const v = (raw === undefined || raw === null) ? '' : String(raw).trim();
+      if(v) updates['passengers/'+k+'/'+pair[1]] = v;
+    });
     if(extra.bus){
       const v = String(r[extra.bus] === undefined ? '' : r[extra.bus]).trim();
       if(v) updates['passengers/'+k+'/bus'] = v;
@@ -1272,7 +1943,7 @@ async function loadPassengerRows(rows, bookingKey, nombreKey, apellidoKey, cabin
   if(visaKey) visasCleared = stalePendingClear.size;
   try{
     if(Object.keys(updates).length){
-      await opRef(currentVoyage).update(updates);
+      await commitUpdates(updates);
     }
     let msg = 'Listo. ' + added + ' pasajeros nuevos, ' + updated + ' actualizados.';
     if(cabinKey){
@@ -1347,6 +2018,7 @@ async function handleHospFile(e){
     const parsed = await readSheetSmart(file);
     if(!parsed || !parsed.rows.length){ alert('El archivo está vacío o no encontré datos.'); e.target.value=''; return; }
     pendingMapRows = parsed.rows;
+    pendingNotesData = parsed.notes || null;
     pendingAfterMap = null;
     openMapModal(parsed.headers, parsed.rows, 'pax');
   }catch(err){
@@ -1441,7 +2113,13 @@ function openMapModal(headers, rows, mode){
                                          g8: findColPriority(headers, ['departure','dep time','etd','hora de salida','hora salida','salida','std','flight time']),
       l9:'Columna Bus — opcional',
                                          g9: findColPriority(headers, ['bus','coach','transfer']),
-      prev:'Booking | First Name | Last Name | Cabina | Visa needed | Special Request | Vuelo | Hora | Bus'
+      l10:'Columna Arrival Date SCL (fecha de llegada del pasajero) — opcional',
+                                         g10: findColPriority(headers, ['arrival date','fecha de llegada','fecha llegada']),
+      l11:'Columna VIP — opcional',      g11: findColExact(headers, ['vip']) || findColPriority(headers, ['vip']),
+      l12:'Columna Remarks — opcional',  g12: findColPriority(headers, ['remarks','remark','observaciones']),
+      l13:'Columna Hotel Comments — opcional', g13: findColPriority(headers, ['hotel comment']),
+      l14:'Columna Transfer Comments — opcional', g14: findColPriority(headers, ['transfer comment']),
+      prev:'Booking | First Name | Last Name | Cabina | Visa needed | Special Request | Vuelo | Hora | Bus | Llegada'
     };
   }
   document.getElementById('mapLbl1').textContent = cfg.l1;
@@ -1459,7 +2137,7 @@ function openMapModal(headers, rows, mode){
     document.getElementById('mapRow6').style.display = 'none';
     fillMapSelect('mapSel5', headers, null);
     fillMapSelect('mapSel6', headers, null);
-    [7,8,9].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
+    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
   } else if(mode === 'pax'){
     document.getElementById('mapLbl4').textContent = cfg.l4;
     fillMapSelect('mapSel4', headers, cfg.g4);
@@ -1470,12 +2148,12 @@ function openMapModal(headers, rows, mode){
     document.getElementById('mapLbl6').textContent = cfg.l6;
     fillMapSelect('mapSel6', headers, cfg.g6);
     document.getElementById('mapRow6').style.display = 'block';
-    [7,8,9].forEach(n=>{ document.getElementById('mapLbl'+n).textContent = cfg['l'+n]; fillMapSelect('mapSel'+n, headers, cfg['g'+n]); document.getElementById('mapRow'+n).style.display='block'; });
+    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapLbl'+n).textContent = cfg['l'+n]; fillMapSelect('mapSel'+n, headers, cfg['g'+n]); document.getElementById('mapRow'+n).style.display='block'; });
   } else {
     document.getElementById('mapRow4').style.display = 'none';
     document.getElementById('mapRow5').style.display = 'none';
     document.getElementById('mapRow6').style.display = 'none';
-    [7,8,9].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
+    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
     fillMapSelect('mapSel4', headers, null);
     fillMapSelect('mapSel5', headers, null);
     fillMapSelect('mapSel6', headers, null);
@@ -1528,7 +2206,7 @@ function updateMapPreview(){
 }
 
 async function cancelMap(){
-  pendingMapRows = null;
+  pendingMapRows = null; pendingNotesData = null;
   closeModal('mapModal');
   if(pendingAfterMap){ const f = pendingAfterMap; pendingAfterMap = null; await f(); }
 }
@@ -1562,6 +2240,7 @@ async function confirmMap(){
     const c7flight = document.getElementById('mapSel7').value || null;
     const c8ftime = document.getElementById('mapSel8').value || null;
     const c9bus = document.getElementById('mapSel9').value || null;
+    const xk = {}; [['arrival',10],['vip',11],['remarks',12],['hotelc',13],['transc',14]].forEach(a=>{ xk[a[0]] = document.getElementById('mapSel'+a[1]).value || null; });
     if(c5visa){
       const visaValues = rows.map(r => String(r[c5visa] === undefined ? '' : r[c5visa]).trim());
       const visaCount = visaValues.filter(isVisaNeededValue).length;
@@ -1576,7 +2255,8 @@ async function confirmMap(){
     }
     pendingMapRows = null;
     closeModal('mapModal');
-    await loadPassengerRows(rows, c1, c2, c3, c4cabin, c5visa, c6special, {flight:c7flight, ftime:c8ftime, bus:c9bus});
+    await loadPassengerRows(rows, c1, c2, c3, c4cabin, c5visa, c6special, Object.assign({flight:c7flight, ftime:c8ftime, bus:c9bus}, xk));
+    if(pendingNotesData){ await saveNotes(pendingNotesData); pendingNotesData = null; }
   }
   if(pendingAfterMap){ const f = pendingAfterMap; pendingAfterMap = null; await f(); }
 }
@@ -1725,7 +2405,7 @@ async function loadVisaRows(rows, lastKey, firstKey, neededKey, suiteKey){
       if(!prev || !prev.status) updates['passengers/'+k+'/visa/status'] = 'pendiente';
     });
 
-    if(Object.keys(updates).length) await opRef(currentVoyage).update(updates);
+    if(Object.keys(updates).length) await commitUpdates(updates);
 
     let msg = 'Visa & Documents Check cargado — ' + rows.length + ' filas en el archivo.';
     msg += '\n🛂 ' + marked + ' pasajeros marcados para revisión de visa.';
@@ -1845,7 +2525,7 @@ async function loadCabinRows(rows, bookingKey, guestKey, cabinKey, method){
     });
 
     if(Object.keys(updates).length){
-      await opRef(currentVoyage).update(updates);
+      await commitUpdates(updates);
     }
 
     let msg = 'Update #' + newBatch + ' cargado.';
@@ -1873,19 +2553,34 @@ async function loadCabinRows(rows, bookingKey, guestKey, cabinKey, method){
 }
 
 function render(){
-  document.getElementById('paxCount').textContent = '(' + Object.keys(passengersDb).length + ')';
+  const allP = Object.keys(passengersDb).map(k=>passengersDb[k]);
+  document.getElementById('paxCount').textContent = '(' + allP.length + ')';
+  const reqN = allP.filter(hasRequirement).length;
+  const reqLbl = document.getElementById('onlyReqLbl');
+  if(reqLbl) reqLbl.textContent = '⭐ Con requerimientos (' + reqN + ')';
   const search = normalize(document.getElementById('searchBox').value);
   const list = document.getElementById('paxList');
   const onlyChanges = document.getElementById('onlyChanges').checked;
   const onlyVisa = document.getElementById('onlyVisa').checked;
   const onlyNoPhoto = document.getElementById('onlyNoPhoto').checked;
   const onlySpecial = document.getElementById('onlySpecial').checked;
+  const onlyReq = document.getElementById('onlyReq').checked;
+  const it = getItinerary();
+  const dayVal = dayFilterValue();
+  const dayNum = dayVal === '' ? null : parseInt(dayVal,10);
+  let dayOnlyCount = 0;
   const entries = Object.keys(passengersDb).map(k=>[k, passengersDb[k]]).filter(([key,p])=>{
+    if(dayNum !== null){
+      const a = arrivalInfo(p, it);
+      if(a.rel !== dayNum) return false;
+      dayOnlyCount++;
+    }
     if(onlyChanges && getHistArray(p).length < 2) return false;
     const vf = p.visa && p.visa.required;
     if((onlyVisa || onlyNoPhoto) && !vf) return false;
     if(onlyNoPhoto && p.visa.hasPhoto) return false;
-    if(onlySpecial && !p.specialRequest) return false;
+    if(onlySpecial && !paxTags(p).meals.length) return false;
+    if(onlyReq && !hasRequirement(p)) return false;
     if(!search) return true;
     return normalize(p.booking).includes(search) || normalize((p.apellido||'')+' '+(p.nombre||'')).includes(search);
   }).sort((a,b)=>{
@@ -1894,11 +2589,14 @@ function render(){
     if(oa !== ob) return oa - ob;
     return (a[1].apellido||'').localeCompare(b[1].apellido||'');
   });
+  lastRenderedCount = entries.length;
+  buildDayFilterInfo(allP, dayNum !== null ? dayOnlyCount : entries.length, dayVal);
+  renderSyncCard();
 
   if(!entries.length){
     list.innerHTML = onlyChanges
       ? '<div class="empty">No hay pasajeros con cambio de cabina todavía.</div>'
-      : '<div class="empty">Aún no hay pasajeros cargados. Sube el Excel de la lista de pasajeros arriba.</div>';
+      : '<div class="empty">' + (allP.length ? 'No hay pasajeros que cumplan los filtros elegidos.' : 'Aún no hay pasajeros cargados. Sube el Excel de la lista de pasajeros en la pestaña Info del viaje.') + '</div>';
     return;
   }
 
@@ -1921,33 +2619,31 @@ function render(){
       const vTxt = st === 'ok' ? 'Visa OK' : (st === 'revisar' ? 'Visa: revisar' : 'Visa: pendiente');
       badge += ' <span class="badge ' + vCls + '">🛂 ' + vTxt + (visa.hasPhoto ? ' · 📷 con foto' : ' · sin foto') + '</span>';
     }
+    const flags = effFlags(p);
+    if(flags.earlyCI)   badge += ' <span class="badge eci">🛎 Early check-in</span>';
+    if(flags.preLand)   badge += ' <span class="badge preland">🧳 Pre land</span>';
+    if(flags.postLand)  badge += ' <span class="badge postland">🏨 Post land</span>';
+    if(flags.wheelchair)badge += ' <span class="badge wheel">♿ Silla de ruedas</span>';
+    if(flags.noBP)      badge += ' <span class="badge coral">🎫 Sin Boarding Pass</span>';
     const visaNeed = (visa && visa.needed)
       ? '<div class="counter" style="margin-top:4px;">🛂 Requiere: ' + escapeHtml(visa.needed) + '</div>' : '';
-    // Solicitud especial (comida): se muestra como sigla(s) en rojo con
-    // triángulo de advertencia, igual al formato que usa el equipo para
-    // marcar VGML/KSML/etc. Si vienen varias separadas por coma/slash/;,
-    // cada una se muestra por separado con su propio ⚠.
-    // Siglas de special request. BIRTHDAY → palabra roja + vela; VENETIAN →
-    // "VENETIAN PAX" en verde; el resto (VGML, KSML...) → ⚠ en rojo.
-    const specialCodes = (p.specialRequest||'').split(/[,;/]+/).map(s=>s.trim()).filter(Boolean);
-    const specialParts = specialCodes.map(c=>{
-      const n = normalize(c);
-      if(/birth|bday|b-day|cumple/.test(n))
-        return '<span style="color:var(--coral);">BIRTHDAY <span style="display:inline-block; transform:translateY(1px);">🕯️</span></span>';
-      if(/\bvip\b|\b3\s*vip\b|^3vip$/.test(n))
-        return '<span style="color:#0F2A43;">★ ' + escapeHtml(c.toUpperCase()) + '</span>';
-      if(/venetian|veneciano/.test(n))
-        return '<span style="color:#1E8449;">VENETIAN PAX</span>';
-      return '<span style="color:var(--coral);">⚠ ' + escapeHtml(c.toUpperCase()) + '</span>';
-    });
+    // Marcas especiales: VIP (azul), Venetian (verde), cumpleaños con fecha y vela (rojo),
+    // comidas especiales con ⚠ (rojo).
+    const tags = paxTags(p);
+    const specialParts = [];
+    if(tags.vip) specialParts.push('<span style="color:#0F2A43;">★ ' + tags.vip + '</span>');
+    if(tags.venetian) specialParts.push('<span style="color:#1E8449;">VENETIAN PAX</span>');
+    if(tags.birthday !== null) specialParts.push('<span style="color:var(--coral);">BIRTHDAY' + (tags.birthday ? ' ' + escapeHtml(tags.birthday) : '') + ' <span style="display:inline-block; transform:translateY(1px);">🕯️</span></span>');
+    tags.meals.forEach(c => specialParts.push('<span style="color:var(--coral);">⚠ ' + escapeHtml(c) + '</span>'));
     const specialWarning = specialParts.length
-      ? '<div style="margin-top:2px; font-size:12.5px; font-weight:700; letter-spacing:.2px;">' +
-          specialParts.join('&nbsp;&nbsp;&nbsp;') +
-        '</div>' : '';
+      ? '<div style="margin-top:2px; font-size:12.5px; font-weight:700; letter-spacing:.2px;">' + specialParts.join('&nbsp;&nbsp;&nbsp;') + '</div>' : '';
+    const arr = arrivalInfo(p, it);
     const travelBits = [];
     if(p.flight) travelBits.push('✈ Vuelo ' + escapeHtml(p.flight));
     if(p.flightTime) travelBits.push('🕐 Sale ' + escapeHtml(p.flightTime));
     if(p.bus) travelBits.push('🚌 Bus ' + escapeHtml(p.bus));
+    if(arr.iso) travelBits.push('🛬 Llega SCL ' + fmtShortISO(arr.iso) + (arr.rel !== null ? ' (' + (arr.rel === 0 ? 'embarque' : 'Día ' + arr.rel) + ')' : ''));
+    else if(arr.rel !== null) travelBits.push('🛬 Llega SCL Día ' + arr.rel);
     const travelInfo = travelBits.length
       ? '<div style="margin-top:3px; font-size:11.5px; color:var(--muted); font-weight:600;">' + travelBits.join(' &nbsp;·&nbsp; ') + '</div>' : '';
 
@@ -1963,7 +2659,7 @@ function render(){
       '<div class="claim-item"><strong>' + c.ts + ' — ' + c.staff + '</strong><br>Reporte: ' + escapeHtml(c.report) + '<br>Acciones: ' + escapeHtml(c.actions) + '</div>'
     ).join('');
 
-    return '<div class="pax-card"' + (specialCodes.length ? ' style="background:#D9EEFA; border-color:#9CCBE6;"' : '') + '>' +
+    return '<div class="pax-card"' + (hasRequirement(p) ? ' style="background:#D9EEFA; border-color:#9CCBE6;"' : '') + '>' +
       '<div class="pax-top">' +
         '<div>' +
           '<div class="pax-name">' + escapeHtml(displayName(p)) + '</div>' +
@@ -1988,6 +2684,7 @@ function render(){
       '<div class="pax-actions">' +
         '<button class="btn small" onclick="openDeliverModal(\'' + key + '\')">Marcar entrega</button>' +
         '<button class="btn secondary small" onclick="openClaimModal(\'' + key + '\')">Agregar reclamo/req.</button>' +
+        '<button class="btn ghost small" onclick="openReqModal(\'' + key + '\')">📝 Requerimientos</button>' +
         (visa
           ? '<button class="btn visa small" onclick="openVisaModal(\'' + key + '\')">🛂 Visa</button>'
           : '<button class="btn ghost small" onclick="markVisaRequired(\'' + key + '\')">＋ visa</button>') +
@@ -2079,7 +2776,7 @@ async function confirmDeliver(){
     updates['passengers/'+k+'/delivery'] = {delivered:true, cabin: current, staff: staffName, ts};
   });
   try{
-    await opRef(currentVoyage).update(updates);
+    await commitUpdates(updates);
   }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
   // Como ambos quedaron marcados como presentes en este mismo momento, es el
   // mejor momento para chequear la visa de quien todavía la tenga pendiente.
@@ -2315,7 +3012,7 @@ async function saveVisa(){
   const btn = document.getElementById('visaSaveBtn');
   btn.disabled = true; btn.textContent = 'Guardando...';
   try{
-    await opRef(currentVoyage).update(updates);
+    await commitUpdates(updates);
   }catch(e){
     btn.disabled = false; btn.textContent = 'Guardar';
     alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.');
@@ -2370,7 +3067,7 @@ async function clearAllVisas(){
     updates['visaPhotos/'+k] = null;
   });
   try{
-    await opRef(currentVoyage).update(updates);
+    await commitUpdates(updates);
   }catch(e){
     btn.disabled = false; btn.textContent = '🗑 Quitar visa a todos los marcados';
     alert('No se pudo completar. Revisa tu conexión e intenta de nuevo.');
@@ -2593,32 +3290,20 @@ async function exportGeneral(){
     });
   });
 
-  const paxRows = entries.map(p=>{
-    const hist = getHistArray(p);
-    const current = hist.length ? hist[hist.length-1].cabin : '—';
-    const del = (p.delivery && p.delivery.delivered)
-      ? (p.delivery.staff||'') + ' — ' + (p.delivery.ts||'') + ' — cabina informada: ' + (p.delivery.cabin||'')
-      : 'Pendiente';
-    const v = p.visa && p.visa.required ? p.visa : null;
-    const visaCell = v ? (visaStatusText(v) + (v.hasPhoto ? ' — con foto' : ' — sin foto')) : 'No requiere';
-    const nClaims = getClaimsArray(p).length;
-    const claimsCell = nClaims ? ('Sí — ' + nClaims) : 'No';
-    const specialCell = p.specialRequest || 'No';
-    const travelCell = [p.flight?('Vuelo '+p.flight):'', p.flightTime?('Sale '+p.flightTime):'', p.bus?('Bus '+p.bus):''].filter(Boolean).join(' · ') || '—';
-    return [displayName(p), p.booking||'', current, travelCell, del, visaCell, claimsCell, specialCell];
-  });
+  const paxRows = paxExportRows(entries);
 
   const head = wordDocHead('Reporte General — Hospitality Pax Tracker', entries.length, 'pasajeros');
   const staffSection = wordSectionTitle('Staff registrado en la operación') + wordTableHtml(['Nombre','Rol','Fecha','Día','Hora de ingreso'], staffRows);
   const schedSection = wordSectionTitle('Horario y contingencia del día') + wordTableHtml(['Fecha','Día','Horario solicitado','Horario real','Contingencia'], scheduleRows);
   const reportsSection = wordSectionTitle('Reports de pasajeros') +
     (claimItems.length ? claimItems.map(reportCardHtml).join('') : '<p style="font-size:9pt; color:#777; font-style:italic; font-family:Calibri, Arial, sans-serif;">Sin reports registrados.</p>');
-  const paxSection = wordSectionTitle('Listado de pasajeros — entrega de información') + wordTableHtml(['Pasajero','Booking','Cabina actual','Vuelo / Bus','Entrega','Visa','Reclamos','Special Request'], paxRows);
+  const paxSection = wordSectionTitle('Listado de pasajeros — entrega de información') + wordTableHtml(PAX_EXPORT_HEAD, paxRows);
 
+  const notesSection = notesWordHtml();
   const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
     'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
     '<head><meta charset="utf-8"><title>Reporte General</title></head>' +
-    '<body style="font-family:Calibri, Arial, sans-serif;">' + head + staffSection + schedSection + reportsSection + paxSection + '</body></html>';
+    '<body style="font-family:Calibri, Arial, sans-serif;">' + head + staffSection + schedSection + reportsSection + paxSection + notesSection + '</body></html>';
 
   const blob = new Blob(['\ufeff', doc], {type: 'application/msword'});
   const a = document.createElement('a');
