@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- ============ VERSIÓN 43 — 10/10/2026 ============ -->
+<!-- ============ VERSIÓN 44 — 10/10/2026 ============ -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hospitality Pax Tracker v43</title>
+<title>Hospitality Pax Tracker v44</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -214,6 +214,18 @@
   .conn-err{background:#FBE7E7; color:#B02A2A;} .conn-info{background:#EAF3FF; color:#1a5fa8;}
   .badge.eci{background:#FFE9D6; color:#B35400;} .badge.preland{background:#E8E4FA; color:#4B3FA0;}
   .badge.postland{background:#D8F1EE; color:#0E6B62;} .badge.wheel{background:#E3EEF9; color:#1A4F8A;}
+  .badge.medical{background:#FDE3E1; color:#B3261E;} .badge.landx{background:#EFEFEF; color:#555;}
+  .badge.nugget{background:#FFF3C4; color:#8A6100;} .badge.wow{background:#F3E3FA; color:#8A2BA8;}
+  .badge.follow{background:#FFE9B8; color:#8A5A00;}
+  .req-group{font-size:11px; font-weight:700; color:#0F2A43; text-transform:uppercase; letter-spacing:.4px; margin:12px 0 6px; border-bottom:1px solid #E1E8EE; padding-bottom:3px;}
+  .req-chk{display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:7px; cursor:pointer;}
+  .mg-guide{background:#FFF6E0; border:1px solid #F0CF85; border-radius:8px; padding:9px 11px; font-size:12.5px; color:#6A4A00; margin:10px 0;}
+  .mg-guide b{color:#8A3B00;}
+  .mg-row{display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:6px; cursor:pointer;}
+  .mg-sub{margin:0 0 8px 26px; display:none; gap:8px; flex-wrap:wrap; align-items:center; font-size:12.5px;}
+  .claim-type{display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.3px; padding:1px 7px; border-radius:10px; background:#E3EEF9; color:#1A4F8A; margin-left:4px;}
+  .claim-type.medical{background:#FDE3E1; color:#B3261E;} .claim-type.wow{background:#F3E3FA; color:#8A2BA8;} .claim-type.nugget{background:#FFF3C4; color:#8A6100;}
+  .claim-mg{margin-top:4px; font-size:11.5px; color:#444;}
   .notes-cat{margin:12px 0 4px; font-size:13px; color:var(--navy);}
   .notes-list{margin:0; padding-left:18px; font-size:12.5px; line-height:1.5;}
   .sync-box{font-size:12.5px; line-height:1.6; background:#F7FAFB; border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
@@ -260,7 +272,7 @@
     <img class="cover-logo" src="data:image/png;base64,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" alt="ILS Tours">
     <div class="cover-title-row">
       <h1>🚢 Hospitality Pax Tracker</h1>
-      <span class="cover-version-badge">v43</span>
+      <span class="cover-version-badge">v44</span>
     </div>
     <p class="lead">Esta planilla centraliza el trabajo de hospitalidad: la lista de Hospitality, el Cabin Manifest, sus updates y las actualizaciones de la lista de Visa &amp; Documents Check — todo sincronizado en vivo con tu equipo.</p>
     <div class="login-info-box">Escribe tu nombre, tu rol y el Voyage Code, y presiona Continuar.</div>
@@ -338,7 +350,7 @@
 <div id="app">
 <header class="top">
   <div>
-    <h1 id="tripTitle" style="display:inline;">Hospitality Pax Tracker</h1> <span style="font-size:10px;color:#9FC1D6;font-weight:700;">v43</span>
+    <h1 id="tripTitle" style="display:inline;">Hospitality Pax Tracker</h1> <span style="font-size:10px;color:#9FC1D6;font-weight:700;">v44</span>
     <div class="sub" id="tripSub">Sin configurar aún</div>
   </div>
   <div style="display:flex; gap:8px; align-items:center;">
@@ -504,14 +516,39 @@
 </div>
 
 <div class="modal-bg" id="reqModal">
-  <div class="modal">
-    <h3>Requerimientos rápidos</h3>
-    <div id="reqPaxLabel" class="counter" style="margin-bottom:10px;"></div>
-    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqEarly"> 🛎 Early check-in</label>
-    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqPre"> 🧳 Pre land</label>
-    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqPost"> 🏨 Post land</label>
-    <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin-bottom:8px; cursor:pointer;"><input type="checkbox" id="reqWheel"> ♿ Silla de ruedas</label>
-    <div class="counter">Si lo marcas o desmarcas a mano, esa decisión se respeta aunque se vuelva a subir la planilla.</div>
+  <div class="modal" style="max-height:88vh; overflow-y:auto;">
+    <h3>Requerimientos y banderas</h3>
+    <div id="reqPaxLabel" class="counter" style="margin-bottom:6px;"></div>
+
+    <div class="req-group">Identificación</div>
+    <label class="req-chk"><input type="checkbox" id="reqVenetian"> VENETIAN PAX</label>
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:7px; font-size:13px;">
+      <span>★ VIP:</span>
+      <select id="reqVip" style="flex:0 0 auto; width:auto;"><option value="">Sin VIP</option><option value="VIP">VIP</option><option value="3VIP">3VIP</option></select>
+    </div>
+    <label class="req-chk"><input type="checkbox" id="reqBirthday" onchange="document.getElementById('reqBdDate').style.display=this.checked?'inline-block':'none'"> 🕯️ Pasajero de cumpleaños</label>
+    <input type="text" id="reqBdDate" placeholder="Fecha, ej. 20 OCT" style="display:none; margin:0 0 8px 26px; width:170px;">
+
+    <div class="req-group">Llegada y salud</div>
+    <label class="req-chk"><input type="checkbox" id="reqEarly"> 🛎 Early check-in</label>
+    <label class="req-chk"><input type="checkbox" id="reqWheel"> ♿ Silla de ruedas</label>
+    <label class="req-chk"><input type="checkbox" id="reqMedical"> 🩺 Pasajero accidentado / con tema de salud</label>
+
+    <div class="req-group">Land program</div>
+    <label class="req-chk"><input type="checkbox" id="reqPre"> 🧳 Pre land</label>
+    <label class="req-chk"><input type="checkbox" id="reqPost"> 🏨 Post land</label>
+    <label class="req-chk"><input type="checkbox" id="reqLandCancel"> ❌ Canceló el land program</label>
+    <label class="req-chk"><input type="checkbox" id="reqLandOwn"> 🚶 Se fue por su cuenta</label>
+
+    <div class="req-group">Atención al pasajero</div>
+    <label class="req-chk"><input type="checkbox" id="reqNugget"> 💎 Nugget (preferencia del pasajero para compartir con otras áreas)</label>
+    <label class="req-chk"><input type="checkbox" id="reqWow"> ✨ Momento WOW realizado</label>
+
+    <div class="req-group">Habitación</div>
+    <input type="text" id="reqRoom" list="roomCfgList" placeholder="Configuración de habitación, ej. DBL, SGL, DBL/TWIN BED, TRIP">
+    <datalist id="roomCfgList"><option value="SGL"><option value="DBL"><option value="DBL/TWIN BED"><option value="TRIP"></datalist>
+
+    <div class="counter" style="margin-top:10px;">Puedes marcar o desmarcar cualquiera si hubo un error. Esa decisión se respeta aunque se vuelva a subir la planilla.</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal('reqModal')">Cancelar</button>
       <button class="btn" onclick="saveReq()">Guardar</button>
@@ -520,10 +557,24 @@
 </div>
 
 <div class="modal-bg" id="claimModal">
-  <div class="modal">
+  <div class="modal" style="max-height:90vh; overflow-y:auto;">
     <h3>Registrar report / reclamo</h3>
     <div id="claimPaxLabel" class="counter" style="margin-bottom:6px;"></div>
     <div id="claimMeta" style="font-size:11.5px; color:var(--muted); background:#F7FAFB; border-radius:6px; padding:8px 10px; margin-bottom:10px;"></div>
+    <div style="margin-bottom:10px;">
+      <label>Tipo de registro</label>
+      <select id="claimType" onchange="onClaimTypeChange()">
+        <option value="comment">💬 Comentario</option>
+        <option value="complaint">⚠️ Reclamo</option>
+        <option value="medical">🚑 MEDICAL EMERGENCY</option>
+        <option value="luggage">🧳 PÉRDIDA DE EQUIPAJE</option>
+        <option value="wow">✨ MOMENTO WOW</option>
+        <option value="nugget">💎 NUGGET (preferencia del pasajero)</option>
+        <option value="cancel">❌ CANCELACIÓN</option>
+        <option value="own">🚶 SE FUE POR SU CUENTA</option>
+      </select>
+    </div>
+    <div id="claimGuide" class="mg-guide" style="display:none;"></div>
     <div style="margin-bottom:10px;">
       <label>Voyage (editable si cambió el ID)</label>
       <input type="text" id="claimVoyage">
@@ -533,6 +584,32 @@
     <div style="height:10px;"></div>
     <label>Resolution — acuerdo con el pasajero</label>
     <textarea id="claimActions" placeholder="¿En qué quedaron con el pasajero?"></textarea>
+
+    <div id="claimMgBox" style="display:none; margin-top:12px;">
+      <div class="req-group" style="margin-top:0;">Gestión — marca lo que hiciste</div>
+      <label class="mg-row" id="mgRowWa"><input type="checkbox" id="mgWa"> 📲 Lo envié al grupo de WhatsApp</label>
+      <label class="mg-row" id="mgRowTeam"><input type="checkbox" id="mgTeam"> 📣 Informé a todo el equipo por WhatsApp</label>
+      <label class="mg-row" id="mgRowShare"><input type="checkbox" id="mgShare" onchange="onMgToggle()"> ↗ Lo compartí con otras áreas</label>
+      <div class="mg-sub" id="mgSubShare"><input type="text" id="mgShareAreas" placeholder="¿Con qué áreas? (ej. Hotel, F&B, Guest Relations)" style="flex:1; min-width:200px;"></div>
+      <label class="mg-row" id="mgRowFollow"><input type="checkbox" id="mgFollow" onchange="onMgToggle()"> ⏰ Quedé de averiguar y contactar al pasajero</label>
+      <div class="mg-sub" id="mgSubFollow">
+        <span>Por:</span>
+        <select id="mgFollowVia" style="width:auto; flex:0 0 auto;"><option>WhatsApp del pasajero</option><option>Habitación</option></select>
+        <span>a las</span>
+        <input type="text" id="mgFollowTime" placeholder="hora, ej. 16:30" style="width:120px;">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label>Notas de gestión / mensaje adicional (opcional)</label>
+      <textarea id="claimNote" placeholder="Escribe aquí lo que quieras agregar para el equipo o para otras áreas..."></textarea>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+      <button class="btn secondary small" type="button" onclick="copyWaMessage()">📋 Copiar mensaje para WhatsApp</button>
+      <button class="btn secondary small" type="button" onclick="openWaMessage()">📲 Abrir WhatsApp</button>
+    </div>
+    <div id="claimWaStatus" class="counter" style="margin-top:4px;"></div>
+
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModal('claimModal')">Cancelar</button>
       <button class="btn" onclick="saveClaim()">Guardar registro</button>
@@ -632,6 +709,7 @@
     <div id="mapRow12" style="margin-top:10px; display:none;"><label id="mapLbl12">Columna 12</label><select id="mapSel12" onchange="updateMapPreview()"></select></div>
     <div id="mapRow13" style="margin-top:10px; display:none;"><label id="mapLbl13">Columna 13</label><select id="mapSel13" onchange="updateMapPreview()"></select></div>
     <div id="mapRow14" style="margin-top:10px; display:none;"><label id="mapLbl14">Columna 14</label><select id="mapSel14" onchange="updateMapPreview()"></select></div>
+    <div id="mapRow15" style="margin-top:10px; display:none;"><label id="mapLbl15">Columna 15</label><select id="mapSel15" onchange="updateMapPreview()"></select></div>
     <div id="mapPreview" style="margin-top:12px; font-size:11.5px; background:#F7FAFB; border-radius:6px; padding:8px 10px; display:none;"></div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="cancelMap()">Cancelar</button>
@@ -830,7 +908,7 @@ function paxTexts(p){
 function normTxt(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
 function autoFlags(p){
   const all = normTxt(paxTexts(p));
-  const f = {earlyCI:false, preLand:false, postLand:false, wheelchair:false, noBP:false};
+  const f = {earlyCI:false, preLand:false, postLand:false, wheelchair:false, noBP:false, medical:false, landCancelled:false, landOwn:false, nugget:false, wow:false};
   if(!all) return f;
   f.earlyCI = /early[\s\-]*check[\s\-]*in|early[\s\-]*checkin|early\s*c\/i|\beci\b/.test(all);
   const landProg = /land\s*program/.test(all);
@@ -842,7 +920,7 @@ function autoFlags(p){
   f.noBP = /sin\s+boarding|no\s+boarding|without\s+boarding/.test(all);
   return f;
 }
-const MANUAL_FLAGS = ['earlyCI','preLand','postLand','wheelchair'];
+const MANUAL_FLAGS = ['earlyCI','preLand','postLand','wheelchair','medical','landCancelled','landOwn','nugget','wow'];
 function effFlags(p){
   const f = autoFlags(p);
   const m = p.flagsManual || {};
@@ -879,11 +957,34 @@ function paxTags(p){
     if(/birth|bday|b-day|cumple|venetian|veneciano|\bvip\b|\b3\s*vip\b|wheel|wch|silla|early|land\s*program|pre[\s-]?land|post[\s-]?land|boarding/.test(n)) return;
     t.meals.push(c.toUpperCase());
   });
+  // Ajustes manuales (marcar / desmarcar a mano) — tienen prioridad sobre la detección automática
+  const m = p.flagsManual || {};
+  if(m.vip === 'none') t.vip = '';
+  else if(m.vip === 'VIP' || m.vip === '3VIP') t.vip = m.vip;
+  if(typeof m.venetian === 'boolean') t.venetian = m.venetian;
+  if(m.birthday === false) t.birthday = null;
+  else if(m.birthday === true){ if(t.birthday === null) t.birthday = ''; if(m.birthdayDate) t.birthday = String(m.birthdayDate); }
   return t;
 }
 function hasRequirement(p){
   const t = paxTags(p), f = effFlags(p);
-  return !!(t.vip || t.venetian || t.birthday !== null || t.meals.length || f.earlyCI || f.preLand || f.postLand || f.wheelchair || f.noBP);
+  return !!(t.vip || t.venetian || t.birthday !== null || t.meals.length || f.earlyCI || f.preLand || f.postLand || f.wheelchair || f.noBP ||
+            f.medical || f.landCancelled || f.landOwn || f.nugget || f.wow);
+}
+// Texto resumen de los requerimientos (para Word / Excel)
+function otherReqText(p){
+  const t = paxTags(p), f = effFlags(p), a = [];
+  if(t.vip) a.push(t.vip);
+  if(t.venetian) a.push('Venetian');
+  if(t.birthday !== null) a.push('Cumpleaños' + (t.birthday ? ' ' + t.birthday : ''));
+  if(f.wheelchair) a.push('Silla de ruedas');
+  if(f.medical) a.push('Salud / accidente');
+  if(f.landCancelled) a.push('Land cancelado');
+  if(f.landOwn) a.push('Land: se fue por su cuenta');
+  if(f.nugget) a.push('Nugget');
+  if(f.wow) a.push('Momento WOW');
+  if(f.noBP) a.push('Sin boarding pass');
+  return a.join(', ');
 }
 
 /* ----- Transporte: SDK normal o "modo alterno" por API REST ----- */
@@ -1145,21 +1246,46 @@ let reqKey = null;
 function openReqModal(key){
   if(isReadOnly()){ alert('Tu rol (Journey Manager) es de solo lectura.'); return; }
   reqKey = key;
-  const p = passengersDb[key]; const f = effFlags(p);
-  document.getElementById('reqPaxLabel').innerHTML = '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking);
-  document.getElementById('reqEarly').checked = f.earlyCI;
-  document.getElementById('reqPre').checked = f.preLand;
-  document.getElementById('reqPost').checked = f.postLand;
-  document.getElementById('reqWheel').checked = f.wheelchair;
+  const p = passengersDb[key]; const f = effFlags(p); const t = paxTags(p);
+  const g = id => document.getElementById(id);
+  g('reqPaxLabel').innerHTML = '<strong>' + escapeHtml(displayName(p)) + '</strong> — Booking ' + escapeHtml(p.booking);
+  g('reqEarly').checked = f.earlyCI;
+  g('reqPre').checked = f.preLand;
+  g('reqPost').checked = f.postLand;
+  g('reqWheel').checked = f.wheelchair;
+  g('reqMedical').checked = f.medical;
+  g('reqLandCancel').checked = f.landCancelled;
+  g('reqLandOwn').checked = f.landOwn;
+  g('reqNugget').checked = f.nugget;
+  g('reqWow').checked = f.wow;
+  g('reqVenetian').checked = !!t.venetian;
+  g('reqVip').value = t.vip || '';
+  g('reqBirthday').checked = t.birthday !== null;
+  g('reqBdDate').value = t.birthday || '';
+  g('reqBdDate').style.display = t.birthday !== null ? 'inline-block' : 'none';
+  g('reqRoom').value = p.roomConfig || '';
   openModal('reqModal');
 }
 async function saveReq(){
   const p = passengersDb[reqKey]; if(!p) return;
-  const f = effFlags(p);
-  const now = {earlyCI:document.getElementById('reqEarly').checked, preLand:document.getElementById('reqPre').checked,
-               postLand:document.getElementById('reqPost').checked, wheelchair:document.getElementById('reqWheel').checked};
+  const f = effFlags(p), t = paxTags(p);
+  const g = id => document.getElementById(id);
+  const now = {earlyCI:g('reqEarly').checked, preLand:g('reqPre').checked, postLand:g('reqPost').checked, wheelchair:g('reqWheel').checked,
+               medical:g('reqMedical').checked, landCancelled:g('reqLandCancel').checked, landOwn:g('reqLandOwn').checked,
+               nugget:g('reqNugget').checked, wow:g('reqWow').checked};
+  const base = 'passengers/'+reqKey+'/';
   const updates = {};
-  MANUAL_FLAGS.forEach(k => { if(now[k] !== f[k]) updates['passengers/'+reqKey+'/flagsManual/'+k] = now[k]; });
+  MANUAL_FLAGS.forEach(k => { if(now[k] !== f[k]) updates[base+'flagsManual/'+k] = now[k]; });
+  const ven = g('reqVenetian').checked;
+  if(ven !== !!t.venetian) updates[base+'flagsManual/venetian'] = ven;
+  const vipSel = g('reqVip').value;
+  if(vipSel !== (t.vip || '')) updates[base+'flagsManual/vip'] = vipSel || 'none';
+  const bd = g('reqBirthday').checked;
+  const bdDate = g('reqBdDate').value.trim().toUpperCase();
+  if(bd !== (t.birthday !== null)) updates[base+'flagsManual/birthday'] = bd;
+  if(bd && bdDate !== (t.birthday || '')){ updates[base+'flagsManual/birthday'] = true; updates[base+'flagsManual/birthdayDate'] = bdDate; }
+  const room = g('reqRoom').value.trim();
+  if(room !== (p.roomConfig || '')) updates[base+'roomConfig'] = room;
   try{ if(Object.keys(updates).length) await commitUpdates(updates); }
   catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
   closeModal('reqModal');
@@ -1178,10 +1304,11 @@ function paxExportRows(entries){
     const f = effFlags(p);
     const travelCell = [p.flight?('Vuelo '+p.flight):'', p.flightTime?('Sale '+p.flightTime):'', p.bus?('Bus '+p.bus):''].filter(Boolean).join(' · ') || '—';
     return [displayName(p), p.booking||'', current, travelCell, del, visaCell, nClaims ? ('Sí — ' + nClaims) : 'No',
-            p.specialRequest || 'No', f.earlyCI ? 'Sí' : 'No', f.preLand ? 'Sí' : 'No', f.postLand ? 'Sí' : 'No'];
+            p.specialRequest || 'No', f.earlyCI ? 'Sí' : 'No', f.preLand ? 'Sí' : 'No', f.postLand ? 'Sí' : 'No',
+            p.roomConfig || '—', otherReqText(p) || '—'];
   });
 }
-const PAX_EXPORT_HEAD = ['Pasajero','Booking','Cabina actual','Vuelo / Bus','Entrega','Visa','Reclamos','Special Request','Early check-in','Pre land','Post land'];
+const PAX_EXPORT_HEAD = ['Pasajero','Booking','Cabina actual','Vuelo / Bus','Entrega','Visa','Reclamos','Special Request','Early check-in','Pre land','Post land','Habitación','Otros requerimientos'];
 function exportPaxExcel(){
   const entries = Object.values(passengersDb);
   if(!entries.length){ alert('No hay datos para exportar.'); return; }
@@ -1647,7 +1774,43 @@ function getHistArray(p){
 }
 function getClaimsArray(p){
   if(!p || !p.claims) return [];
-  return Object.keys(p.claims).sort().map(k=>p.claims[k]);
+  return Object.keys(p.claims).sort().map(k=>Object.assign({_k:k}, p.claims[k]));
+}
+/* ----- Tipos de report / reclamo y checklist de gestión ----- */
+const CLAIM_TYPES = {
+  comment:  {label:'Comentario', icon:'💬', guide:'', wa:false, follow:false, share:false, team:false, flag:null},
+  complaint:{label:'Reclamo', icon:'⚠️', guide:'<b>Debes gestionar:</b> marca si lo enviaste al grupo de WhatsApp y, si quedaste de averiguar, anota por qué vía (WhatsApp del pasajero o habitación) y a qué hora acordaron que lo contactarás.', wa:true, follow:true, share:false, team:false, flag:null},
+  medical:  {label:'MEDICAL EMERGENCY', icon:'🚑', guide:'<b>Emergencia médica — gestiona ahora:</b> avisa de inmediato al grupo de WhatsApp y compártelo con las áreas que correspondan (médico / enfermería, Journey Manager, hotel). Si quedaste de averiguar, registra la vía y el horario acordado con el pasajero. Esto marcará al pasajero con la bandera 🩺.', wa:true, follow:true, share:true, team:false, flag:'medical'},
+  luggage:  {label:'PÉRDIDA DE EQUIPAJE', icon:'🧳', guide:'<b>Debes gestionar:</b> envía el caso al grupo de WhatsApp. Si quedaste de averiguar, registra por qué vía (WhatsApp o habitación) y a qué hora le darás novedades al pasajero.', wa:true, follow:true, share:false, team:false, flag:null},
+  wow:      {label:'MOMENTO WOW', icon:'✨', guide:'<b>Momento WOW:</b> es algo que hiciste para sorprender al pasajero (feliz aniversario, saludo por ser Venetian, etc.). Envíalo al grupo de WhatsApp y <b>compártelo con otras áreas</b> para que se sumen. Esto marcará al pasajero con la bandera ✨.', wa:true, follow:false, share:true, team:false, flag:'wow'},
+  nugget:   {label:'NUGGET (preferencia del pasajero)', icon:'💎', guide:'<b>Nugget:</b> preferencia evidente que escuchaste del pasajero. <b>Compártela con otras áreas</b> para que lo sorprendan y envíala al grupo de WhatsApp. Esto marcará al pasajero con la bandera 💎.', wa:true, follow:false, share:true, team:false, flag:'nugget'},
+  cancel:   {label:'CANCELACIÓN', icon:'❌', guide:'<b>El pasajero canceló:</b> informa a <b>todo el equipo</b> enviando el mensaje al grupo de WhatsApp. Esto marcará al pasajero con la bandera ❌.', wa:true, follow:false, share:false, team:true, flag:'landCancelled'},
+  own:      {label:'SE FUE POR SU CUENTA', icon:'🚶', guide:'<b>El pasajero se fue por su cuenta:</b> informa a <b>todo el equipo</b> enviando el mensaje al grupo de WhatsApp. Esto marcará al pasajero con la bandera 🚶.', wa:true, follow:false, share:false, team:true, flag:'landOwn'}
+};
+function claimTypeKey(c){ return (c && c.type && CLAIM_TYPES[c.type]) ? c.type : 'complaint'; }
+function claimMgText(c){
+  const g = c.mg; if(!g) return '';
+  const a = [];
+  if(g.wa) a.push('✔ Enviado al grupo de WhatsApp');
+  if(g.follow) a.push((c.followDone ? '✔ Seguimiento hecho (' + escapeHtml(c.followDone) + ')' : '⏰ Contactar por ' + escapeHtml(g.followVia||'') + ' a las ' + escapeHtml(g.followTime||'')));
+  if(g.share) a.push('↗ Compartido con otras áreas' + (g.shareAreas ? ': ' + escapeHtml(g.shareAreas) : ''));
+  if(g.team) a.push('📣 Equipo informado');
+  return a.join(' · ');
+}
+function claimItemHtml(c, key){
+  const tk = claimTypeKey(c), t = CLAIM_TYPES[tk];
+  const typeBadge = c.type ? '<span class="claim-type ' + tk + '">' + t.icon + ' ' + escapeHtml(t.label) + '</span>' : '';
+  const mg = claimMgText(c);
+  const doneBtn = (c.mg && c.mg.follow && !c.followDone && c._k && !isReadOnly())
+    ? ' <button class="btn ghost small" style="padding:2px 8px; font-size:11px;" onclick="markFollowDone(\'' + key + '\',\'' + c._k + '\')">✔ Hecho</button>' : '';
+  return '<div class="claim-item"><strong>' + escapeHtml(c.ts) + ' — ' + escapeHtml(c.staff) + '</strong>' + typeBadge +
+    '<br>Reporte: ' + escapeHtml(c.report) + '<br>Acciones: ' + escapeHtml(c.actions) +
+    (c.note ? '<br>Notas: ' + escapeHtml(c.note) : '') +
+    (mg ? '<div class="claim-mg">' + mg + doneBtn + '</div>' : '') + '</div>';
+}
+async function markFollowDone(key, claimKey){
+  try{ await commitUpdates({['passengers/'+key+'/claims/'+claimKey+'/followDone']: nowStr()}); }
+  catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
 }
 
 function updateStaffUI(){
@@ -1922,7 +2085,7 @@ async function loadPassengerRows(rows, bookingKey, nombreKey, apellidoKey, cabin
       const v = fmtTimeCell(r[extra.ftime]);
       if(v) updates['passengers/'+k+'/flightTime'] = v;
     }
-    [['arrival','arrivalRaw'],['vip','vip'],['remarks','remarks'],['hotelc','hotelComments'],['transc','transferComments']].forEach(pair=>{
+    [['arrival','arrivalRaw'],['vip','vip'],['remarks','remarks'],['hotelc','hotelComments'],['transc','transferComments'],['room','roomConfig']].forEach(pair=>{
       if(!extra[pair[0]]) return;
       const raw = r[extra[pair[0]]];
       const v = (raw === undefined || raw === null) ? '' : String(raw).trim();
@@ -2119,6 +2282,7 @@ function openMapModal(headers, rows, mode){
       l12:'Columna Remarks — opcional',  g12: findColPriority(headers, ['remarks','remark','observaciones']),
       l13:'Columna Hotel Comments — opcional', g13: findColPriority(headers, ['hotel comment']),
       l14:'Columna Transfer Comments — opcional', g14: findColPriority(headers, ['transfer comment']),
+      l15:'Columna Room Config (configuración de habitación) — opcional', g15: findColPriority(headers, ['room config','room type','configuracion de habitacion','configuración de habitación','room configuration']),
       prev:'Booking | First Name | Last Name | Cabina | Visa needed | Special Request | Vuelo | Hora | Bus | Llegada'
     };
   }
@@ -2137,7 +2301,7 @@ function openMapModal(headers, rows, mode){
     document.getElementById('mapRow6').style.display = 'none';
     fillMapSelect('mapSel5', headers, null);
     fillMapSelect('mapSel6', headers, null);
-    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
+    [7,8,9,10,11,12,13,14,15].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
   } else if(mode === 'pax'){
     document.getElementById('mapLbl4').textContent = cfg.l4;
     fillMapSelect('mapSel4', headers, cfg.g4);
@@ -2148,12 +2312,12 @@ function openMapModal(headers, rows, mode){
     document.getElementById('mapLbl6').textContent = cfg.l6;
     fillMapSelect('mapSel6', headers, cfg.g6);
     document.getElementById('mapRow6').style.display = 'block';
-    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapLbl'+n).textContent = cfg['l'+n]; fillMapSelect('mapSel'+n, headers, cfg['g'+n]); document.getElementById('mapRow'+n).style.display='block'; });
+    [7,8,9,10,11,12,13,14,15].forEach(n=>{ document.getElementById('mapLbl'+n).textContent = cfg['l'+n]; fillMapSelect('mapSel'+n, headers, cfg['g'+n]); document.getElementById('mapRow'+n).style.display='block'; });
   } else {
     document.getElementById('mapRow4').style.display = 'none';
     document.getElementById('mapRow5').style.display = 'none';
     document.getElementById('mapRow6').style.display = 'none';
-    [7,8,9,10,11,12,13,14].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
+    [7,8,9,10,11,12,13,14,15].forEach(n=>{ document.getElementById('mapRow'+n).style.display='none'; fillMapSelect('mapSel'+n, headers, null); });
     fillMapSelect('mapSel4', headers, null);
     fillMapSelect('mapSel5', headers, null);
     fillMapSelect('mapSel6', headers, null);
@@ -2240,7 +2404,7 @@ async function confirmMap(){
     const c7flight = document.getElementById('mapSel7').value || null;
     const c8ftime = document.getElementById('mapSel8').value || null;
     const c9bus = document.getElementById('mapSel9').value || null;
-    const xk = {}; [['arrival',10],['vip',11],['remarks',12],['hotelc',13],['transc',14]].forEach(a=>{ xk[a[0]] = document.getElementById('mapSel'+a[1]).value || null; });
+    const xk = {}; [['arrival',10],['vip',11],['remarks',12],['hotelc',13],['transc',14],['room',15]].forEach(a=>{ xk[a[0]] = document.getElementById('mapSel'+a[1]).value || null; });
     if(c5visa){
       const visaValues = rows.map(r => String(r[c5visa] === undefined ? '' : r[c5visa]).trim());
       const visaCount = visaValues.filter(isVisaNeededValue).length;
@@ -2625,6 +2789,12 @@ function render(){
     if(flags.postLand)  badge += ' <span class="badge postland">🏨 Post land</span>';
     if(flags.wheelchair)badge += ' <span class="badge wheel">♿ Silla de ruedas</span>';
     if(flags.noBP)      badge += ' <span class="badge coral">🎫 Sin Boarding Pass</span>';
+    if(flags.medical)   badge += ' <span class="badge medical">🩺 Salud / accidente</span>';
+    if(flags.landCancelled) badge += ' <span class="badge landx">❌ Land cancelado</span>';
+    if(flags.landOwn)   badge += ' <span class="badge landx">🚶 Land: por su cuenta</span>';
+    if(flags.nugget)    badge += ' <span class="badge nugget">💎 Nugget</span>';
+    if(flags.wow)       badge += ' <span class="badge wow">✨ Momento WOW</span>';
+    if(claimsArr.some(c => c.mg && c.mg.follow && !c.followDone)) badge += ' <span class="badge follow">⏰ Seguimiento pendiente</span>';
     const visaNeed = (visa && visa.needed)
       ? '<div class="counter" style="margin-top:4px;">🛂 Requiere: ' + escapeHtml(visa.needed) + '</div>' : '';
     // Marcas especiales: VIP (azul), Venetian (verde), cumpleaños con fecha y vela (rojo),
@@ -2642,6 +2812,7 @@ function render(){
     if(p.flight) travelBits.push('✈ Vuelo ' + escapeHtml(p.flight));
     if(p.flightTime) travelBits.push('🕐 Sale ' + escapeHtml(p.flightTime));
     if(p.bus) travelBits.push('🚌 Bus ' + escapeHtml(p.bus));
+    if(p.roomConfig) travelBits.push('🛏 Hab. ' + escapeHtml(p.roomConfig));
     if(arr.iso) travelBits.push('🛬 Llega SCL ' + fmtShortISO(arr.iso) + (arr.rel !== null ? ' (' + (arr.rel === 0 ? 'embarque' : 'Día ' + arr.rel) + ')' : ''));
     else if(arr.rel !== null) travelBits.push('🛬 Llega SCL Día ' + arr.rel);
     const travelInfo = travelBits.length
@@ -2655,9 +2826,7 @@ function render(){
       ? '<div class="delivery-info">✅ Entregado por <strong>' + p.delivery.staff + '</strong> — ' + p.delivery.ts + ' — cabina informada: <strong>' + p.delivery.cabin + '</strong></div>'
       : '';
 
-    const claimsHtml = claimsArr.slice().reverse().map(c =>
-      '<div class="claim-item"><strong>' + c.ts + ' — ' + c.staff + '</strong><br>Reporte: ' + escapeHtml(c.report) + '<br>Acciones: ' + escapeHtml(c.actions) + '</div>'
-    ).join('');
+    const claimsHtml = claimsArr.slice().reverse().map(c => claimItemHtml(c, key)).join('');
 
     return '<div class="pax-card"' + (hasRequirement(p) ? ' style="background:#D9EEFA; border-color:#9CCBE6;"' : '') + '>' +
       '<div class="pax-top">' +
@@ -2806,23 +2975,112 @@ function openClaimModal(booking){
   document.getElementById('claimVoyage').value = tripConfig.voyage || currentVoyage || '';
   document.getElementById('claimReport').value = '';
   document.getElementById('claimActions').value = '';
+  document.getElementById('claimNote').value = '';
+  document.getElementById('claimType').value = 'comment';
+  ['mgWa','mgTeam','mgShare','mgFollow'].forEach(id => { document.getElementById(id).checked = false; });
+  document.getElementById('mgShareAreas').value = '';
+  document.getElementById('mgFollowTime').value = '';
+  document.getElementById('mgFollowVia').selectedIndex = 0;
+  document.getElementById('claimWaStatus').textContent = '';
+  onClaimTypeChange();
   openModal('claimModal');
 }
+function onMgToggle(){
+  document.getElementById('mgSubShare').style.display = document.getElementById('mgShare').checked ? 'flex' : 'none';
+  document.getElementById('mgSubFollow').style.display = document.getElementById('mgFollow').checked ? 'flex' : 'none';
+}
+function onClaimTypeChange(){
+  const tk = document.getElementById('claimType').value, t = CLAIM_TYPES[tk];
+  const guide = document.getElementById('claimGuide');
+  guide.innerHTML = t.guide || '';
+  guide.style.display = t.guide ? 'block' : 'none';
+  const any = t.wa || t.follow || t.share || t.team;
+  document.getElementById('claimMgBox').style.display = any ? 'block' : 'none';
+  document.getElementById('mgRowWa').style.display = t.wa ? 'flex' : 'none';
+  document.getElementById('mgRowTeam').style.display = t.team ? 'flex' : 'none';
+  document.getElementById('mgRowShare').style.display = t.share ? 'flex' : 'none';
+  document.getElementById('mgRowFollow').style.display = t.follow ? 'flex' : 'none';
+  if(!t.share) document.getElementById('mgShare').checked = false;
+  if(!t.follow) document.getElementById('mgFollow').checked = false;
+  if(!t.team) document.getElementById('mgTeam').checked = false;
+  if(!t.wa) document.getElementById('mgWa').checked = false;
+  onMgToggle();
+}
+function readMgForm(){
+  const g = id => document.getElementById(id);
+  return {wa:g('mgWa').checked, team:g('mgTeam').checked, share:g('mgShare').checked, shareAreas:g('mgShareAreas').value.trim(),
+          follow:g('mgFollow').checked, followVia:g('mgFollowVia').value, followTime:g('mgFollowTime').value.trim()};
+}
+function buildWaMessage(){
+  const g = id => document.getElementById(id);
+  const tk = g('claimType').value, t = CLAIM_TYPES[tk], mg = readMgForm();
+  const p = passengersDb[pendingBooking] || {};
+  const hist = getHistArray(p);
+  const cab = hist.length ? hist[hist.length-1].cabin : '—';
+  const L = [];
+  L.push(t.icon + ' *' + t.label + '* — ' + (tripConfig.ship || '') + ' · ' + (g('claimVoyage').value.trim() || tripConfig.voyage || currentVoyage || ''));
+  L.push('Pasajero: ' + displayName(p) + ' · Cabina ' + cab + ' · Booking ' + (p.booking || ''));
+  L.push('Staff: ' + staffName + ' · ' + nowStr() + ' · ' + dayShortLabel(sessionDay));
+  const rep = g('claimReport').value.trim(), act = g('claimActions').value.trim(), note = g('claimNote').value.trim();
+  if(rep) L.push('Detalle: ' + rep);
+  if(act) L.push('Acuerdo: ' + act);
+  if(mg.follow) L.push('Seguimiento: contactar por ' + mg.followVia + (mg.followTime ? ' a las ' + mg.followTime : ''));
+  if(mg.share || t.share) L.push('Compartir con otras áreas' + (mg.shareAreas ? ': ' + mg.shareAreas : ''));
+  if(t.team) L.push('Se informa a TODO el equipo.');
+  if(note) L.push(note);
+  return L.join('\n');
+}
+async function copyWaMessage(){
+  const msg = buildWaMessage();
+  const st = document.getElementById('claimWaStatus');
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(msg);
+    else throw new Error('noclip');
+    st.textContent = '✔ Mensaje copiado. Pégalo en el grupo de WhatsApp.';
+  }catch(e){
+    const ta = document.createElement('textarea'); ta.value = msg; document.body.appendChild(ta); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(e2){}
+    document.body.removeChild(ta);
+    st.textContent = ok ? '✔ Mensaje copiado. Pégalo en el grupo de WhatsApp.' : 'No se pudo copiar automáticamente. Usa "Abrir WhatsApp".';
+  }
+}
+function openWaMessage(){
+  window.open('https://wa.me/?text=' + encodeURIComponent(buildWaMessage()), '_blank');
+}
 async function saveClaim(){
-  const report = document.getElementById('claimReport').value.trim();
-  const actions = document.getElementById('claimActions').value.trim();
-  const voyageVal = document.getElementById('claimVoyage').value.trim() || tripConfig.voyage || currentVoyage;
+  const g = id => document.getElementById(id);
+  const report = g('claimReport').value.trim();
+  const actions = g('claimActions').value.trim();
+  const note = g('claimNote').value.trim();
+  const voyageVal = g('claimVoyage').value.trim() || tripConfig.voyage || currentVoyage;
+  const tk = g('claimType').value, t = CLAIM_TYPES[tk];
   if(!report){ alert('Escribe el report antes de guardar.'); return; }
+  const mg = readMgForm();
+  if(mg.follow && !mg.followTime){ alert('Indica a qué hora acordaste contactar al pasajero.'); return; }
+  const anyMg = mg.wa || mg.team || mg.share || mg.follow;
+  if((t.wa || t.follow || t.share || t.team) && !anyMg){
+    const need = [];
+    if(t.wa) need.push('enviarlo al grupo de WhatsApp');
+    if(t.team) need.push('informar a todo el equipo');
+    if(t.share) need.push('compartirlo con otras áreas');
+    if(t.follow) need.push('registrar el seguimiento si quedaste de averiguar');
+    if(!confirm('No marcaste ninguna gestión. Recuerda: ' + need.join(', ') + '.\n\n¿Guardar igual?')) return;
+  }
   const p = passengersDb[pendingBooking] || {};
   const hist = getHistArray(p);
   const cab = hist.length ? hist[hist.length-1].cabin : '';
   const newClaim = {
-    report, actions, resolution: actions,
+    type: tk, report, actions, resolution: actions, note,
+    mg: {wa:mg.wa, team:mg.team, share:mg.share, shareAreas:mg.shareAreas, follow:mg.follow, followVia:mg.followVia, followTime:mg.followTime},
     staff: staffName, ship: tripConfig.ship||'', voyage: voyageVal, day: sessionDay||'',
     cabin: cab, ts: nowStr()
   };
   try{
     await opRef(currentVoyage, 'passengers/'+pendingBooking+'/claims').push(newClaim);
+    if(t.flag){
+      const eff = effFlags(p);
+      if(!eff[t.flag]) await commitUpdates({['passengers/'+pendingBooking+'/flagsManual/'+t.flag]: true});
+    }
   }catch(e){ alert('No se pudo guardar. Revisa tu conexión e intenta de nuevo.'); }
   closeModal('claimModal');
 }
@@ -3233,7 +3491,7 @@ function wordTableHtml(headers, rows){
 }
 function reportCardHtml(r){
   return '<div style="border:1pt solid #B9C7D3; border-radius:6pt; padding:10pt 12pt; margin:0 0 12pt; font-family:Calibri, Arial, sans-serif;">' +
-    '<p style="font-size:11.5pt; margin:0 0 8pt; font-weight:bold; text-transform:uppercase;">' + escapeHtml(r.paxName) + '</p>' +
+    '<p style="font-size:11.5pt; margin:0 0 8pt; font-weight:bold; text-transform:uppercase;">' + escapeHtml(r.paxName) + (r.type ? ' &nbsp;<span style="font-size:9pt; color:#8A3B00;">[' + escapeHtml(r.type) + ']</span>' : '') + '</p>' +
     '<p style="font-size:9pt; color:#333333; margin:0 0 8pt;">' +
       '<b>STAFF:</b> ' + escapeHtml(r.staff) + ' &nbsp;&nbsp; ' +
       '<b>SHIP:</b> ' + escapeHtml(r.ship) + ' &nbsp;&nbsp; ' +
@@ -3243,7 +3501,9 @@ function reportCardHtml(r){
       '<b>DAY:</b> ' + escapeHtml(dayShortLabel(r.day)) +
     '</p>' +
     '<p style="font-size:10.5pt; margin:0 0 8pt;"><b>REPORT —</b> ' + escapeHtml(r.report||'').split('\n').join('<br>') + '</p>' +
-    '<p style="font-size:10.5pt; margin:0;"><b>RESOLUTION —</b> ' + (r.resolution ? escapeHtml(r.resolution).split('\n').join('<br>') : '<i>Sin resolution registrada.</i>') + '</p>' +
+    '<p style="font-size:10.5pt; margin:0 0 8pt;"><b>RESOLUTION —</b> ' + (r.resolution ? escapeHtml(r.resolution).split('\n').join('<br>') : '<i>Sin resolution registrada.</i>') + '</p>' +
+    (r.mgText ? '<p style="font-size:9.5pt; margin:0 0 4pt;"><b>GESTIÓN —</b> ' + escapeHtml(r.mgText) + '</p>' : '') +
+    (r.note ? '<p style="font-size:9.5pt; margin:0;"><b>NOTAS —</b> ' + escapeHtml(r.note).split('\n').join('<br>') + '</p>' : '') +
   '</div>';
 }
 
@@ -3285,7 +3545,8 @@ async function exportGeneral(){
         staff: c.staff||'', ship: c.ship || tripConfig.ship || '', voyage: c.voyage || tripConfig.voyage || '',
         cabin: c.cabin || (hist.length ? hist[hist.length-1].cabin : '—'),
         datetime: c.ts||'', day: (c.day !== undefined && c.day !== '') ? c.day : sessionDay,
-        report: c.report||'', resolution: c.resolution || c.actions || ''
+        report: c.report||'', resolution: c.resolution || c.actions || '',
+        type: c.type ? (CLAIM_TYPES[claimTypeKey(c)].label) : '', mgText: claimMgText(c).replace(/<[^>]*>/g,''), note: c.note||''
       });
     });
   });
